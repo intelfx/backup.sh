@@ -8,7 +8,7 @@
 
 FILESYSTEM="$1"
 SNAPSHOT_TAG="{{tag}}"
-. ${BASH_SOURCE%/*}/backup_config.sh || exit
+. ${BASH_SOURCE%/*}/backup_btrfs_config.sh || exit
 
 #
 # main

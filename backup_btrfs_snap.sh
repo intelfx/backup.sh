@@ -7,7 +7,7 @@
 #
 
 SNAPSHOT_TAG="$NEW_SNAPSHOT_TAG"
-. ${BASH_SOURCE%/*}/backup_config.sh || exit
+. ${BASH_SOURCE%/*}/backup_btrfs_config.sh || exit
 
 #
 # main
