@@ -6,9 +6,11 @@
 # config
 #
 
+. ${BASH_SOURCE%/*}/backup_btrfs_config.sh || exit
+
 SNAPSHOT_TAG="$1"
 TARGET_DIR="$2"
-. ${BASH_SOURCE%/*}/backup_btrfs_config.sh || exit
+SNAPSHOT_PATH="$(btrfs_snapshot_path "$SNAPSHOT_TAG")"
 
 
 #

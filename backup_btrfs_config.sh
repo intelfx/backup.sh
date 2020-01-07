@@ -1,7 +1,12 @@
 #!/hint/bash
 
-NEW_SNAPSHOT_TAG="$(date -Iseconds)"
-SNAPSHOT_PATH="snapshots/$SNAPSHOT_TAG"
+btrfs_snapshot_tag() {
+	date -Iseconds
+}
+btrfs_snapshot_path() {
+	local tag="$1"
+	echo "snapshots/$tag"
+}
 
 FILESYSTEM="/"
 # FIXME: only one entry possible

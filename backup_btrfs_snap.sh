@@ -6,8 +6,10 @@
 # config
 #
 
-SNAPSHOT_TAG="$NEW_SNAPSHOT_TAG"
 . ${BASH_SOURCE%/*}/backup_btrfs_config.sh || exit
+
+NEW_SNAPSHOT_TAG="$(btrfs_snapshot_tag)"
+SNAPSHOT_PATH="$(btrfs_snapshot_path "$NEW_SNAPSHOT_TAG")"
 
 #
 # main
@@ -49,5 +51,5 @@ for s in "${SUBVOLUMES[@]}"; do
 	btrfs subvolume snapshot "$SUBVOLUME_DIR" "$SNAPSHOT_DIR"
 done
 
-log "Snapshot tag: $SNAPSHOT_TAG"
-echo "$SNAPSHOT_TAG"
+log "Snapshot tag: $NEW_SNAPSHOT_TAG"
+echo "$NEW_SNAPSHOT_TAG"
