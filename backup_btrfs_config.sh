@@ -14,6 +14,6 @@ SUBVOLUMES_INCLUDE=(
 	/arch
 )
 SUBVOLUMES_EXCLUDE=(
-	/arch/home/intelfx/.local/share/containers/storage/btrfs
+	/arch/home/intelfx/.local/share/containers
 	/arch/var/lib/machines
 )
