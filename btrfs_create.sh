@@ -6,10 +6,14 @@
 # config
 #
 
-. ${BASH_SOURCE%/*}/backup_btrfs_config.sh || exit
+(( $# >= 1 )) || die "btrfs_create.sh: bad arguments ($*): expecting <config>"
+CONFIG="$1"
+shift 1
 
-NEW_SNAPSHOT_TAG="$(btrfs_snapshot_tag)"
-SNAPSHOT_PATH="$(btrfs_snapshot_path "$NEW_SNAPSHOT_TAG")"
+load_config "$CONFIG" "$@"
+
+SNAPSHOT_NAME="$(btrfs_snapshot_name)"
+SNAPSHOT_PATH="$(btrfs_snapshot_path "$SNAPSHOT_NAME")"
 
 #
 # main
@@ -51,5 +55,5 @@ for s in "${SUBVOLUMES[@]}"; do
 	btrfs subvolume snapshot "$SUBVOLUME_DIR" "$SNAPSHOT_DIR"
 done
 
-log "Snapshot tag: $NEW_SNAPSHOT_TAG"
-echo "$NEW_SNAPSHOT_TAG"
+log "Snapshot name: $SNAPSHOT_NAME"
+echo "$SNAPSHOT_NAME"

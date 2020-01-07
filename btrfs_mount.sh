@@ -6,11 +6,15 @@
 # config
 #
 
-. ${BASH_SOURCE%/*}/backup_btrfs_config.sh || exit
+(( $# >= 3 )) || die "btrfs_mount.sh: bad arguments ($*): expecting <config> <snapshot name> <mountpoint>"
+CONFIG="$1"
+SNAPSHOT_NAME="$2"
+TARGET_DIR="$3"
+shift 3
 
-SNAPSHOT_TAG="$1"
-TARGET_DIR="$2"
-SNAPSHOT_PATH="$(btrfs_snapshot_path "$SNAPSHOT_TAG")"
+load_config "$CONFIG" "$@"
+
+SNAPSHOT_PATH="$(btrfs_snapshot_path "$SNAPSHOT_NAME")"
 
 
 #
@@ -27,7 +31,7 @@ cleanup_add "umount -l '$MOUNT_DIR'"
 
 SNAPSHOT_DIR="$MOUNT_DIR/$SNAPSHOT_PATH"
 if ! [[ -d "$SNAPSHOT_DIR" ]]; then
-	die "Bad snapshot directory: $SNAPSHOT_DIR (tag: $SNAPSHOT_TAG)"
+	die "Bad snapshot dir: $SNAPSHOT_DIR (name: $SNAPSHOT_NAME)"
 fi
 
 mkdir -p "$TARGET_DIR"

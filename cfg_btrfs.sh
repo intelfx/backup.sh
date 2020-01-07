@@ -1,6 +1,8 @@
 #!/hint/bash
 
-btrfs_snapshot_tag() {
+(( $# == 0 )) || die "cfg_btrfs.sh: extra arguments ($*): not expecting anything"
+
+btrfs_snapshot_name() {
 	date -Iseconds
 }
 btrfs_snapshot_path() {

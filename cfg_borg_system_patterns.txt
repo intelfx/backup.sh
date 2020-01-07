@@ -1,0 +1,3 @@
+- **/.PyCharm*/system/
+- **/.CLion*/system/
+- **/.git/subtree-cache/

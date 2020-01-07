@@ -6,22 +6,47 @@
 # subroutines
 #
 
+if [[ "$BACKUP_SH" ]]; then
+	echo "backup_lib.sh: already loaded, not loading again"
+	return
+fi
+
+BACKUP_SH="$(dirname "$BASH_SOURCE")"
+if ! [[ -e "$BACKUP_SH/backup_lib.sh" ]]; then
+	die "Cannot infer backup.sh root: '$BACKUP_SH'"
+fi
+export PATH="$BACKUP_SH:$PATH"
+
 CLEANUP_CMDS=()
 cleanup_add() {
 	CLEANUP_CMDS+=( "$@" )
 }
 cleanup_do() {
-	log "Exit code: $?"
+	local rc="$?"
+	log "Exit code: $rc"
 	log "Starting cleanup"
+	local i cmd
 	for (( i=${#CLEANUP_CMDS[@]}-1; i>=0; --i )); do
 		cmd="${CLEANUP_CMDS[$i]}"
 		log "Cleanup: $cmd"
-		eval "$cmd" || warn "Cleanup failed: $cmd (rc=$?)"
+		eval "$cmd" || warn "Cleanup failed (rc=$?): $cmd"
 	done
 	log "Done cleaning up"
 	CLEANUP_CMDS=()
+	return "$rc"
 }
 trap cleanup_do EXIT TERM INT HUP
+
+load_config() {
+	local config="$1"
+	shift 1
+
+	if ! [[ -f "$config" && -r "$config" ]]; then
+		die "Bad config: '$config'"
+	fi
+	local configdir="$(realpath "${config%/*}")"
+	. "$config" "$@"
+}
 
 btrfs_remount_id5_to() {
 	local src="$1"

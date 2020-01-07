@@ -8,7 +8,7 @@
 
 TARGET_DIR="$1"
 
-log "Cleaning up snapshot tree under '$TARGET_DIR'"
+log "Cleaning up mountpoint tree under '$TARGET_DIR'"
 if ! [[ -d "$TARGET_DIR" ]]; then
 	die "Bad target directory to unmount: '$TARGET_DIR'"
 fi

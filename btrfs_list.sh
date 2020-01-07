@@ -6,7 +6,11 @@
 # config
 #
 
-. ${BASH_SOURCE%/*}/backup_btrfs_config.sh || exit
+(( $# >= 1 )) || die "btrfs_list.sh: bad arguments ($*): expecting <config>"
+CONFIG="$1"
+shift 1
+
+load_config "$CONFIG" "$@"
 
 #
 # main
@@ -23,7 +27,7 @@ cleanup_add "umount -l '$MOUNT_DIR'"
 SNAPSHOT_GLOB="'$MOUNT_DIR/$(btrfs_snapshot_path "'*'")'"
 < <(eval "printf '%s\n' $SNAPSHOT_GLOB") readarray -t SNAPSHOTS
 
-SNAPSHOT_TAG_REGEX="^$MOUNT_DIR/$(btrfs_snapshot_path "([^/]+)")$"
-< <(printf "%s\n" "${SNAPSHOTS[@]}" | sed -r "s|$SNAPSHOT_TAG_REGEX|\\1|") readarray -t TAGS
+SNAPSHOT_NAME_REGEX="^$MOUNT_DIR/$(btrfs_snapshot_path "([^/]+)")$"
+< <(printf "%s\n" "${SNAPSHOTS[@]}" | sed -r "s|$SNAPSHOT_NAME_REGEX|\\1|") readarray -t NAMES
 
-printf "%s\n" "${TAGS[@]}"
+printf "%s\n" "${NAMES[@]}"
