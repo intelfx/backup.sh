@@ -44,7 +44,7 @@ load_config() {
 	if ! [[ -f "$config" && -r "$config" ]]; then
 		die "Bad config: '$config'"
 	fi
-	local configdir="$(realpath "${config%/*}")"
+	local configdir="$(dirname "$(realpath -qe "$config")")"
 	. "$config" "$@"
 }
 
