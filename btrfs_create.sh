@@ -52,7 +52,7 @@ for s in "${SUBVOLUMES[@]}"; do
 	log "Snapshotting subvolume '$s' from '$SUBVOLUME_DIR' to '$SNAPSHOT_DIR'"
 
 	mkdir -p "${SNAPSHOT_DIR%/*}"
-	btrfs subvolume snapshot "$SUBVOLUME_DIR" "$SNAPSHOT_DIR"
+	btrfs subvolume snapshot "$SUBVOLUME_DIR" "$SNAPSHOT_DIR" >&2
 done
 
 log "Snapshot name: $SNAPSHOT_NAME"
