@@ -2,6 +2,7 @@
 
 . lib.sh || exit
 
+set -e -o pipefail
 
 #
 # initialization
