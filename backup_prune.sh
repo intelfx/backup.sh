@@ -18,11 +18,6 @@ load_config "$CONFIG" "$@"
 # subroutines
 #
 
-function ts() {
-	local time="$1"
-	date -d "$time" '+%s'
-}
-
 function load_args() {
 	local arg name value
 	for arg; do
@@ -143,9 +138,6 @@ prune_keep_yearly() {
 #
 # main
 #
-
-NOW="$(date -Iseconds)"
-NOW_SEC="$(ts "$NOW")"
 
 # backups are tried recent-first, as this aligns with daily/weekly/monthly rule semantics
 # (that is, keep the most recent backup in a given timeframe)

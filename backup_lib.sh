@@ -110,3 +110,16 @@ btrfs_remount_id5_to() {
 	dbg "btrfs_remount_id5_to: mounting root subvolume of '$device' on '$targetdir with '$target_options'"
 	mount --make-private "$device" "$targetdir" -t btrfs -o "$target_options"
 }
+
+function ts() {
+	local time="$1"
+	date -d "$time" '+%s'
+}
+
+
+#
+# variables
+#
+
+NOW="$(date -Iseconds)"
+NOW_SEC="$(ts "$NOW")"
