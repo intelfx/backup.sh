@@ -2,14 +2,19 @@
 
 . lib.sh || exit
 
+
 #
-# subroutines
+# initialization
 #
 
+LIBSH_LOG_PREFIX="${BASH_SOURCE[0]##*/}"
+
 if [[ "$BACKUP_SH" ]]; then
-	echo "backup_lib.sh: already loaded, not loading again"
+	warn "already loaded, not loading again"
 	return
 fi
+
+LIBSH_LOG_PREFIX="${BASH_SOURCE[1]##*/}"
 
 BACKUP_SH="$(dirname "$BASH_SOURCE")"
 if ! [[ -e "$BACKUP_SH/backup_lib.sh" ]]; then
@@ -17,21 +22,26 @@ if ! [[ -e "$BACKUP_SH/backup_lib.sh" ]]; then
 fi
 export PATH="$BACKUP_SH:$PATH"
 
+
+#
+# subroutines
+#
+
 CLEANUP_CMDS=()
 cleanup_add() {
 	CLEANUP_CMDS+=( "$@" )
 }
 cleanup_do() {
 	local rc="$?"
-	log "Exit code: $rc"
-	log "Starting cleanup"
+	dbg "exit code: $rc"
+	dbg "starting cleanup"
 	local i cmd
 	for (( i=${#CLEANUP_CMDS[@]}-1; i>=0; --i )); do
 		cmd="${CLEANUP_CMDS[$i]}"
-		log "Cleanup: $cmd"
-		eval "$cmd" || warn "Cleanup failed (rc=$?): $cmd"
+		dbg "cleanup: $cmd"
+		eval "$cmd" || warn "cleanup failed (rc=$?): $cmd"
 	done
-	log "Done cleaning up"
+	dbg "done cleaning up"
 	CLEANUP_CMDS=()
 	return "$rc"
 }
@@ -42,7 +52,7 @@ load_config() {
 	shift 1
 
 	if ! [[ -f "$config" && -r "$config" ]]; then
-		die "Bad config: '$config'"
+		die "bad config: '$config'"
 	fi
 	local configdir="$(dirname "$(realpath -qe "$config")")"
 	. "$config" "$@"
@@ -60,7 +70,7 @@ btrfs_remount_id5_to() {
 	local cur="$src"
 	local fstype device options
 	while [[ "$cur" ]]; do
-		log "btrfs_remount_id5_to: checking '$cur'"
+		dbg "btrfs_remount_id5_to: checking '$cur'"
 		if </proc/self/mountinfo awk "BEGIN { rc=1 } \$5 == \"$cur\" { rc=0 } END { exit rc }"; then
 			fstype="$(</proc/self/mountinfo awk "\$5 == \"$cur\" { print \$9 }")"
 			device="$(</proc/self/mountinfo awk "\$5 == \"$cur\" { print \$10 }")"
@@ -74,7 +84,7 @@ btrfs_remount_id5_to() {
 		err "btrfs_remount_id5_to: could not find a mountpoint for '$src'"
 		return 1
 	fi
-	log "btrfs_remount_id5_to: found mountpoint for '$src': device=$device, fstype=$fstype"
+	dbg "btrfs_remount_id5_to: found mountpoint for '$src': device=$device, fstype=$fstype"
 	if [[ "$fstype" != btrfs ]]; then
 		err "btrfs_remount_id5_to: src '$src' belongs to '$cur' which is $fstype != btrfs"
 		return 1
@@ -97,6 +107,6 @@ btrfs_remount_id5_to() {
 
 	target_options="$target_options,subvolid=5"
 
-	log "btrfs_remount_id5_to: mounting root subvolume of '$device' on '$targetdir with '$target_options'"
+	dbg "btrfs_remount_id5_to: mounting root subvolume of '$device' on '$targetdir with '$target_options'"
 	mount --make-private "$device" "$targetdir" -t btrfs -o "$target_options"
 }

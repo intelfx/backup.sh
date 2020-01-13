@@ -2,11 +2,12 @@
 
 . ${BASH_SOURCE%/*}/backup_lib.sh || exit
 
+
 #
 # config
 #
 
-(( $# >= 3 )) || die "btrfs_mount.sh: bad arguments ($*): expecting <config> <snapshot name> <mountpoint>"
+(( $# >= 3 )) || die "bad arguments ($*): expecting <config> <snapshot name> <mountpoint>"
 CONFIG="$1"
 SNAPSHOT_NAME="$2"
 TARGET_DIR="$3"
@@ -21,7 +22,7 @@ SNAPSHOT_PATH="$(btrfs_snapshot_path "$SNAPSHOT_NAME")"
 # main
 #
 
-log "Reconstructing snapshot tree for filesystem '$FILESYSTEM' at '$SNAPSHOT_PATH' to '$TARGET_DIR'"
+log "reconstructing snapshot tree for filesystem '$FILESYSTEM' at '$SNAPSHOT_PATH' to '$TARGET_DIR'"
 
 MOUNT_DIR="$(mktemp -d)"
 cleanup_add "rm -rf '$MOUNT_DIR'"
@@ -31,7 +32,7 @@ cleanup_add "umount -l '$MOUNT_DIR'"
 
 SNAPSHOT_DIR="$MOUNT_DIR/$SNAPSHOT_PATH"
 if ! [[ -d "$SNAPSHOT_DIR" ]]; then
-	die "Bad snapshot dir: $SNAPSHOT_DIR (name: $SNAPSHOT_NAME)"
+	die "bad snapshot dir: $SNAPSHOT_DIR (name: $SNAPSHOT_NAME)"
 fi
 
 mkdir -p "$TARGET_DIR"
@@ -46,12 +47,12 @@ SUBVOLUMES_LIST_CMD=(
 for s in "${SUBVOLUMES[@]}"; do
 	name="${s##*/}"
 	if ! [[ "$name" == snapshot ]]; then
-		die "Bad snapshot tree hierarchy: '$s' is a snapshot not named 'snapshot'"
+		die "bad snapshot tree hierarchy: '$s' is a snapshot not named 'snapshot'"
 	fi
-	dir="${s%/*}"
+	dir="${s%/snapshot}"
 
 	mkdir -p "$TARGET_DIR/$dir"
 
-	log "Mounting snapshot '$SNAPSHOT_DIR/$s' to '$TARGET_DIR/$dir'"
+	log "mounting snapshot '$SNAPSHOT_DIR/$s' to '$TARGET_DIR/$dir'"
 	mount --bind --make-private "$SNAPSHOT_DIR/$s" "$TARGET_DIR/$dir"
 done

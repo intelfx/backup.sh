@@ -2,11 +2,12 @@
 
 . ${BASH_SOURCE%/*}/backup_lib.sh || exit
 
+
 #
 # config
 #
 
-(( $# >= 1 )) || die "borg_create.sh: bad arguments ($*): expecting <config>"
+(( $# >= 1 )) || die "bad arguments ($*): expecting <config>"
 CONFIG="$1"
 shift 1
 
@@ -14,6 +15,7 @@ load_config "$CONFIG" "$@"
 
 SNAPSHOT_NAME="$(borg_snapshot_name)"
 SNAPSHOT_TAG="$(borg_snapshot_tag "$SNAPSHOT_NAME")"
+
 
 #
 # main
@@ -25,7 +27,7 @@ BORG_ARGS=()
 if SNAPSHOT_TS_UTC="$(TZ=UTC date -d "$SNAPSHOT_NAME" -Iseconds)"; then
 	BORG_ARGS+=( --timestamp "${SNAPSHOT_TS_UTC%+00:00}" )
 else
-	warn "Cannot parse tag '$SNAPSHOT_NAME' as ISO 8601 timestamp -- not setting Borg timestamp!"
+	warn "cannot parse tag '$SNAPSHOT_NAME' as ISO 8601 timestamp -- not setting Borg timestamp!"
 fi
 
 # The  mount  points  of  filesystems  or  filesystem  snapshots should be the
@@ -34,7 +36,7 @@ fi
 # absolute filenames.  If this is not possible, consider creating a bind mount
 # to a stable location.
 if ! mkdir "$BORG_MOUNT_DIR"; then
-	die "Cannot create stable mountpoint '$BORG_MOUNT_DIR' -- already exists?"
+	die "cannot create stable mountpoint '$BORG_MOUNT_DIR' -- already exists?"
 fi
 cleanup_add "backup_unmount.sh '$BORG_MOUNT_DIR'"
 
@@ -44,7 +46,7 @@ cleanup_add "backup_unmount.sh '$BORG_MOUNT_DIR'"
 pushd "$BORG_MOUNT_DIR"
 cleanup_add "popd"
 
-log "Backing up snapshot '$SNAPSHOT_NAME' using Borg to '$BORG_REPO' as '$SNAPSHOT_TAG'"
+log "backing up snapshot '$SNAPSHOT_NAME' using Borg to '$BORG_REPO' as '$SNAPSHOT_TAG'"
 "${BORG_CREATE[@]}" \
 	"${BORG_ARGS[@]}" \
 	"${BORG_REPO}::${SNAPSHOT_TAG}" \
