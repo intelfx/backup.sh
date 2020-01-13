@@ -14,13 +14,13 @@ if [[ "$BACKUP_SH" ]]; then
 	return
 fi
 
-LIBSH_LOG_PREFIX="${BASH_SOURCE[1]##*/}"
-
 BACKUP_SH="$(dirname "$BASH_SOURCE")"
 if ! [[ -e "$BACKUP_SH/backup_lib.sh" ]]; then
 	die "Cannot infer backup.sh root: '$BACKUP_SH'"
 fi
 export PATH="$BACKUP_SH:$PATH"
+
+LIBSH_LOG_PREFIX="${BASH_SOURCE[1]##*/}"
 
 
 #
