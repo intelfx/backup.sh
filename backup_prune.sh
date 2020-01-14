@@ -177,10 +177,8 @@ for snap in "${BACKUPS[@]}"; do
 		die "bad backup timestamp, aborting: snap=$snap ($snap_sec), now=$NOW ($NOW_SEC), age=$snap_age <= 0"
 	fi
 
-	log "trying backup: $snap ($snap_sec), age=$snap_age"
-	#
 	# only the first matched rule is used to generate a verdict, but we still run all rules to update their state
-	#
+	log "trying backup: $snap ($snap_sec), age=$snap_age"
 	verdict=""
 	verdict_rule=""
 	for rule in "${PRUNE_RULES[@]}"; do
