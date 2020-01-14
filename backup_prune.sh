@@ -139,13 +139,6 @@ prune_keep_yearly() {
 # main
 #
 
-# backups are tried recent-first, as this aligns with daily/weekly/monthly rule semantics
-# (that is, keep the most recent backup in a given timeframe)
-# TODO: might want to implement configurable order
-# FIXME: expecting that name == timestamp
-BACKUPS=()
-< <("${PRUNE_LIST[@]}" | sort -r) readarray -t BACKUPS
-
 set_verdict() {
 	local target_verdict="$1" target_rule="$2"
 
@@ -160,14 +153,25 @@ set_verdict() {
 	fi
 }
 
-PRUNE=()
-for snap in "${BACKUPS[@]}"; do
+# backups are tried recent-first, as this aligns with daily/weekly/monthly rule semantics
+# (that is, keep the most recent backup in a given timeframe)
+# TODO: might want to implement configurable order
+BACKUPS=()
+
+while read snap; do
 	# FIXME: expecting that name == timestamp
 	snap_ts="$snap"
 	if ! snap_sec="$(ts "$snap_ts")"; then
 		warn "cannot parse backup name as timestamp, skipping: $snap"
 		continue
 	fi
+	BACKUPS+=( "$snap_sec $snap_ts $snap" )
+done < <("${PRUNE_LIST[@]}")
+sort_array BACKUPS -r -n -k1
+
+PRUNE=()
+for snap in "${BACKUPS[@]}"; do
+	read snap_sec snap_ts snap <<< "$snap"
 	snap_age="$(( NOW_SEC - snap_sec ))"
 	if (( snap_age <= 0 )); then
 		die "bad backup timestamp, aborting: snap=$snap ($snap_sec), now=$NOW ($NOW_SEC), age=$snap_age <= 0"
