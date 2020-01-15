@@ -112,9 +112,13 @@ btrfs_remount_id5_to() {
 	mount --make-private "$device" "$targetdir" -t btrfs -o "$target_options"
 }
 
-function ts() {
+function epoch() {
 	local time="$1"
 	date -d "$time" '+%s'
+}
+
+function now() {
+	date -d "$NOW" "$@"
 }
 
 
@@ -123,4 +127,4 @@ function ts() {
 #
 
 NOW="$(date -Iseconds)"
-NOW_SEC="$(ts "$NOW")"
+NOW_SEC="$(epoch "$NOW")"

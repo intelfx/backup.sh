@@ -72,7 +72,7 @@ _prune_keep_within_timeframe() {
 	declare -g -A "$state_var"
 	declare -n state="$state_var"
 
-	local min_sec="$(ts "$min_ts")"
+	local min_sec="$(epoch "$min_ts")"
 	if (( snap_sec < min_sec )); then
 		log "rule: $desc: backup $snap is older than $max_age ${age_unit_name}s (snap=$snap_ts ($snap_sec), min=$min_ts ($min_sec)), skipping"
 		return
@@ -161,7 +161,7 @@ BACKUPS=()
 while read snap; do
 	# FIXME: expecting that name == timestamp
 	snap_ts="$snap"
-	if ! snap_sec="$(ts "$snap_ts")"; then
+	if ! snap_sec="$(epoch "$snap_ts")"; then
 		warn "cannot parse backup name as timestamp, skipping: $snap"
 		continue
 	fi
