@@ -8,7 +8,7 @@
 # config
 #
 
-(( $# >= 1 )) || die "backup_prune.sh: bad arguments ($*): expecting <config>"
+(( $# >= 1 )) || die "bad arguments ($*): expecting <config>"
 CONFIG="$1"
 shift 1
 
