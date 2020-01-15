@@ -64,21 +64,19 @@ prune_delete_old() {
 }
 
 _prune_keep_within_timeframe() {
-	local desc="$1" count="$2" discriminator="$3" min_ts="$4" max_age="$5" age_unit_name="$6"
-
-	# @name is stringified rule arguments, append rule name
-	desc="${FUNCNAME[1]} $desc"
+	# arguments: desc log_max_age log_age_unit max_age bucket
 	state_var="state_$(echo -n "$desc" | tr -cs [a-zA-Z0-9] '_')"
 	declare -g -A "$state_var"
 	declare -n state="$state_var"
 
+	local min_ts="$(date -d "$max_age" -Iseconds)"
 	local min_sec="$(epoch "$min_ts")"
 	if (( snap_sec < min_sec )); then
-		log "rule: $desc: backup $snap is older than $max_age ${age_unit_name}s (snap=$snap_ts ($snap_sec), min=$min_ts ($min_sec)), skipping"
+		log "rule: $desc: backup $snap is older than $log_max_age ${log_age_unit}s (snap=$snap_ts, min=$min_ts), skipping"
 		return
 	fi
 
-	local bucket="$(date -d "$snap_ts" "$discriminator")"
+	local bucket="$($bucket_f "$snap_ts")"
 	if (( state[$bucket] >= count )); then
 		log "rule: $desc: backup $snap is in excess of allowed $count backups in bucket $bucket (already ${state[$bucket]:-0}), skipping"
 		return
@@ -89,49 +87,109 @@ _prune_keep_within_timeframe() {
 	(( ++state[$bucket] ))
 }
 
+d_keep_minutely() {
+	local ts="$(epoch "$1")"
+	local bucket="$(( ts - ts % (every * 60) ))"
+	date -d "@$bucket" -Iminutes
+}
+prune_keep_minutely() {
+	local every=1 count=0 minutes=0
+	load_args "$@"
+	(( every > 0 )) || die "$FUNCNAME: bad every: ${every}"
+	(( count > 0 )) || die "$FUNCNAME: bad count: ${count}"
+	(( minutes > 0 )) || die "$FUNCNAME: bad minutes: ${hours}"
+	local desc="$FUNCNAME $*" log_max_age="$minutes" log_age_unit="minute"
+	# roll back to beginning of the minute, then subtract minutes
+	local max_age="$(now -Iminutes) -$minutes minutes"
+	local bucket_f=d_keep_minutely
+	_prune_keep_within_timeframe
+}
+
+d_keep_hourly() {
+	local ts="$(epoch "$1")"
+	local bucket="$(( ts - ts % (every * 3600) ))"
+	date -d "@$bucket" -Ihours
+}
 prune_keep_hourly() {
-	local count=0 hours=0
+	local every=1 count=0 hours=0
 	load_args "$@"
-	(( count > 0 )) || die "prune_keep_hourly: bad count: ${count}"
-	(( hours > 0 )) || die "prune_keep_hourly: bad hours: ${hours}"
-	local min_ts="$(date -d "$NOW -$hours hours" -Iseconds)"
-	_prune_keep_within_timeframe "$FUNCNAME $*" "$count" "+%Y-%m-%dT%H:00" "$min_ts" "$hours" "hour"
+	(( every > 0 )) || die "$FUNCNAME: bad every: ${every}"
+	(( count > 0 )) || die "$FUNCNAME: bad count: ${count}"
+	(( hours > 0 )) || die "$FUNCNAME: bad hours: ${hours}"
+	local desc="$FUNCNAME $*" log_max_age="$hours" log_age_unit="hour"
+	# roll back to 0 minutes, then subtract hours
+	local max_age="$(now -Ihours) -$hours hours"
+	local bucket_f=d_keep_hourly
+	_prune_keep_within_timeframe
 }
 
+d_keep_daily() {
+	local ts="$(epoch "$1")"
+	local bucket="$(( ts - ts % (every * 3600 * 24) ))"
+	date -d "@$bucket" -Idate
+}
 prune_keep_daily() {
-	local count=0 days=0
+	local every=1 count=0 days=0
 	load_args "$@"
-	(( count > 0 )) || die "prune_keep_daily: bad count: ${count}"
-	(( days > 0 )) || die "prune_keep_daily: bad days: ${days}"
-	local min_ts="$(date -d "$NOW -$days days" -Iseconds)"
-	_prune_keep_within_timeframe "$FUNCNAME $*" "$count" "+%Y-%m-%d" "$min_ts" "$days" "day"
+	(( every > 0 )) || die "$FUNCNAME: bad every: ${every}"
+	(( count > 0 )) || die "$FUNCNAME: bad count: ${count}"
+	(( days > 0 )) || die "$FUNCNAME: bad hours: ${hours}"
+	local desc="$FUNCNAME $*" log_max_age="$days" log_age_unit="day"
+	# roll back to 00:00:00, then subtract days
+	local max_age="$(now -Idate) -$days days"
+	local bucket_f=d_keep_daily
+	_prune_keep_within_timeframe
 }
 
+d_keep_weekly() {
+	# TODO: support divisors (a bucket every X weeks)
+	local ts="$1"
+	date -d "$ts" '+%YW%W'
+}
 prune_keep_weekly() {
 	local count=0 weeks=0
 	load_args "$@"
-	(( count > 0 )) || die "prune_keep_weekly: bad count: ${count}"
-	(( weeks > 0 )) || die "prune_keep_weekly: bad weeks: ${weeks}"
-	local min_ts="$(date -d "$NOW -$weeks weeks" -Iseconds)"
-	_prune_keep_within_timeframe "$FUNCNAME $*" "$count" "+%Y,%W" "$min_ts" "$weeks" "week"
+	(( count > 0 )) || die "$FUNCNAME: bad count: ${count}"
+	(( weeks > 0 )) || die "$FUNCNAME: bad weeks: ${weeks}"
+	# roll back to 00:00:00, then roll back to last Monday, then subtract weeks
+	local desc="$FUNCNAME $*" log_max_age="$weeks" log_age_unit="week"
+	local max_age="$(now -Idate) last Monday -$weeks weeks"
+	local bucket_f=d_keep_weekly
+	_prune_keep_within_timeframe
 }
 
+d_keep_monthly() {
+	# TODO: support divisors (a bucket every X months)
+	local ts="$1"
+	date -d "$ts" "+%Y-%m"
+}
 prune_keep_monthly() {
 	local count=0 months=0
 	load_args "$@"
 	(( count > 0 )) || die "prune_keep_monthly: bad count: ${count}"
 	(( months > 0 )) || die "prune_keep_monthly: bad months: ${months}"
-	local min_ts="$(date -d "$NOW -$months months" -Iseconds)"
-	_prune_keep_within_timeframe "$FUNCNAME $*" "$count" "+%Y-%m" "$min_ts" "$months" "month"
+	# roll back to 1st of current month, then subtract months
+	local desc="$FUNCNAME $*" log_max_age="$months" log_age_unit="month"
+	local max_age="$(date -d "$NOW" '+%Y-%m-01') -$months months"
+	local bucket_f=d_keep_monthly
+	_prune_keep_within_timeframe
 }
 
+d_keep_yearly() {
+	local ts="$1"
+	local year="$(date -d "$ts" "+%Y")"
+	echo "$(( year - year % every ))"
+}
 prune_keep_yearly() {
-	local count=0 years=0
+	local every=1 count=0 years=0
 	load_args "$@"
+	(( every > 0 )) || die "prune_keep_yearly: bad every: ${years}"
 	(( count > 0 )) || die "prune_keep_yearly: bad count: ${count}"
 	(( years > 0 )) || die "prune_keep_yearly: bad years: ${years}"
-	local min_ts="$(date -d "$NOW -$years years" -Iseconds)"
-	_prune_keep_within_timeframe "$FUNCNAME $*" "$count" "+%Y" "$min_ts" "$years" "year"
+	local desc="$FUNCNAME $*" log_max_age="$years" log_age_unit="year"
+	local max_age="$(date -d "$NOW" '+%Y-01-01') -$years years"
+	local bucket_f=d_keep_yearly
+	_prune_keep_within_timeframe
 }
 
 
@@ -170,8 +228,8 @@ done < <("${PRUNE_LIST[@]}")
 sort_array BACKUPS -r -n -k1
 
 PRUNE=()
-for snap in "${BACKUPS[@]}"; do
-	read snap_sec snap_ts snap <<< "$snap"
+for line in "${BACKUPS[@]}"; do
+	read snap_sec snap_ts snap <<< "$line"
 	snap_age="$(( NOW_SEC - snap_sec ))"
 	if (( snap_age <= 0 )); then
 		die "bad backup timestamp, aborting: snap=$snap ($snap_sec), now=$NOW ($NOW_SEC), age=$snap_age <= 0"
