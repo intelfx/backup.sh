@@ -127,4 +127,4 @@ function now() {
 #
 
 NOW="$(date -Iseconds)"
-NOW_SEC="$(epoch "$NOW")"
+NOW_EPOCH="$(epoch "$NOW")"

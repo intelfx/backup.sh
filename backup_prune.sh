@@ -70,8 +70,8 @@ _prune_keep_within_timeframe() {
 	declare -n state="$state_var"
 
 	local min_ts="$(date -d "$max_age" -Iseconds)"
-	local min_sec="$(epoch "$min_ts")"
-	if (( snap_sec < min_sec )); then
+	local min_epoch="$(epoch "$min_ts")"
+	if (( snap_epoch < min_epoch )); then
 		log "rule: $desc: backup $snap is older than $log_max_age ${log_age_unit}s (snap=$snap_ts, min=$min_ts), skipping"
 		return
 	fi
@@ -219,24 +219,24 @@ BACKUPS=()
 while read snap; do
 	# FIXME: expecting that name == timestamp
 	snap_ts="$snap"
-	if ! snap_sec="$(epoch "$snap_ts")"; then
+	if ! snap_epoch="$(epoch "$snap_ts")"; then
 		warn "cannot parse backup name as timestamp, skipping: $snap"
 		continue
 	fi
-	BACKUPS+=( "$snap_sec $snap_ts $snap" )
+	BACKUPS+=( "$snap_epoch $snap_ts $snap" )
 done < <("${PRUNE_LIST[@]}")
 sort_array BACKUPS -r -n -k1
 
 PRUNE=()
 for line in "${BACKUPS[@]}"; do
-	read snap_sec snap_ts snap <<< "$line"
-	snap_age="$(( NOW_SEC - snap_sec ))"
+	read snap_epoch snap_ts snap <<< "$line"
+	snap_age="$(( NOW_EPOCH - snap_epoch ))"
 	if (( snap_age <= 0 )); then
-		die "bad backup timestamp, aborting: snap=$snap ($snap_sec), now=$NOW ($NOW_SEC), age=$snap_age <= 0"
+		die "bad backup timestamp, aborting: snap=$snap ($snap_epoch), now=$NOW ($NOW_EPOCH), age=$snap_age <= 0"
 	fi
 
 	# only the first matched rule is used to generate a verdict, but we still run all rules to update their state
-	log "trying backup: $snap ($snap_sec), age=$snap_age"
+	log "trying backup: $snap ($snap_epoch), age=$snap_age"
 	verdict=""
 	verdict_rule=""
 	for rule in "${PRUNE_RULES[@]}"; do
