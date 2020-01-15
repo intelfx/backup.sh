@@ -2,12 +2,12 @@
 
 (( $# == 0 )) || die "cfg_btrfs.sh: extra arguments ($*): not expecting anything"
 
-btrfs_snapshot_name() {
-	date -Iseconds
+btrfs_snapshot_id() {
+	echo "$NOW"
 }
 btrfs_snapshot_path() {
-	local tag="$1"
-	echo "snapshots/$tag"
+	local id="$1"
+	echo "snapshots/$id"
 }
 
 FILESYSTEM="/"

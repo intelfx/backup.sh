@@ -13,8 +13,8 @@ shift 1
 
 load_config "$CONFIG" "$@"
 
-SNAPSHOT_NAME="$(btrfs_snapshot_name)"
-SNAPSHOT_PATH="$(btrfs_snapshot_path "$SNAPSHOT_NAME")"
+SNAPSHOT_ID="$(btrfs_snapshot_id)"
+SNAPSHOT_PATH="$(btrfs_snapshot_path "$SNAPSHOT_ID")"
 
 
 #
@@ -57,5 +57,5 @@ for s in "${SUBVOLUMES[@]}"; do
 	btrfs subvolume snapshot "$SUBVOLUME_DIR" "$SNAPSHOT_DIR" >&2
 done
 
-say "Snapshot name:"
-echo "$SNAPSHOT_NAME"
+say "Snapshot id:"
+echo "$SNAPSHOT_ID"

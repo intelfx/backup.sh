@@ -56,14 +56,14 @@ _prune_keep_within_timeframe() {
 	declare -g -A "$state_var"
 	declare -n state="$state_var"
 
-	local min_ts="$(date -d "$max_age" -Iseconds)"
-	local min_epoch="$(epoch "$min_ts")"
+	local min="$(date -d "$max_age" -Iseconds)"
+	local min_epoch="$(epoch "$min")"
 	if (( snap_epoch < min_epoch )); then
-		log "rule: $desc: backup $snap is older than $log_max_age ${log_age_unit}s (snap=$snap_ts, min=$min_ts), skipping"
+		log "rule: $desc: backup $snap is older than $log_max_age ${log_age_unit}s (snap=$snap, min=$min), skipping"
 		return
 	fi
 
-	local bucket="$($bucket_f "$snap_ts")"
+	local bucket="$($bucket_f "$snap")"
 	if (( state[$bucket] >= count )); then
 		log "rule: $desc: backup $snap is in excess of allowed $count backups in bucket $bucket (already ${state[$bucket]:-0}), skipping"
 		return

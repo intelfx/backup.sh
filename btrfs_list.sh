@@ -27,10 +27,10 @@ btrfs_remount_id5_to "$FILESYSTEM" "$MOUNT_DIR"
 cleanup_add "umount -l '$MOUNT_DIR'"
 
 SNAPSHOT_GLOB="'$MOUNT_DIR/$(btrfs_snapshot_path "'*'")'"
-< <(eval "printf '%s\n' $SNAPSHOT_GLOB") readarray -t SNAPSHOTS
+< <(eval "printf '%s\n' $SNAPSHOT_GLOB") readarray -t SNAPSHOT_PATHS
 
-SNAPSHOT_NAME_REGEX="^$MOUNT_DIR/$(btrfs_snapshot_path "([^/]+)")$"
-< <(printf "%s\n" "${SNAPSHOTS[@]}" | sed -r "s|$SNAPSHOT_NAME_REGEX|\\1|") readarray -t NAMES
+SNAPSHOT_ID_REGEX="^$MOUNT_DIR/$(btrfs_snapshot_path "([^/]+)")$"
+< <(printf "%s\n" "${SNAPSHOT_PATHS[@]}" | sed -r "s|$SNAPSHOT_ID_REGEX|\\1|") readarray -t SNAPSHOT_IDS
 
 say "Btrfs snapshots:"
-printf "%s\n" "${NAMES[@]}"
+printf "%s\n" "${SNAPSHOT_IDS[@]}"

@@ -1,7 +1,7 @@
 #!/hint/bash
 
-(( $# == 1 )) || die "cfg_borg_system.sh: bad arguments($*): expecting <source snapshot name>"
-BORG_SNAPSHOT_NAME="$1"
+(( $# == 1 )) || die "cfg_borg_system.sh: bad arguments($*): expecting <snapshot id>"
+BORG_SNAPSHOT_ID="$1"
 
 BORG_CREATE=(
 	borg create
@@ -20,11 +20,11 @@ BORG_REPO="operator@intelfx.name:/mnt/data/Backups/Hosts/$(hostname)/borg"
 BORG_MOUNT_DIR="/tmp/borg"
 BORG_MOUNT_CMD=( btrfs_mount.sh "$configdir/cfg_btrfs.sh" )
 
-borg_snapshot_name() {
-	echo "$BORG_SNAPSHOT_NAME"
+borg_snapshot_id() {
+	echo "$BORG_SNAPSHOT_ID"
 }
 borg_snapshot_tag() {
-	local name="$1"
-	echo "$(hostname)-${name}"
+	local id="$1"
+	echo "$(hostname)-${id}"
 }
 export BORG_PASSCOMMAND="unsudo pass misc/borg"

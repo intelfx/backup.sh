@@ -16,7 +16,7 @@ TARGET_DIR="$1"
 
 log "cleaning up mountpoint tree under '$TARGET_DIR'"
 if ! [[ -d "$TARGET_DIR" ]]; then
-	die "Bad target directory to unmount: '$TARGET_DIR'"
+	die "bad target directory to unmount: '$TARGET_DIR'"
 fi
 
 < <(</proc/self/mountinfo awk "{ print \$5 }" | grep -E "^$TARGET_DIR(/|$)" | sort -r) readarray -t MOUNTPOINTS
@@ -28,8 +28,7 @@ done
 
 TARGET_FILE="$(find "$TARGET_DIR" -type f -print -quit)"
 if [[ "$TARGET_FILE" ]]; then
-	err "Files are left in '$TARGET_DIR' after unmounting -- aborting"
-	exit 1
+	die "files are left in '$TARGET_DIR' after unmounting -- aborting"
 fi
 
 log "removing '$TARGET_DIR'"

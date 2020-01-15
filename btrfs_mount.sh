@@ -7,15 +7,15 @@
 # config
 #
 
-(( $# >= 3 )) || die "bad arguments ($*): expecting <config> <snapshot name> <mountpoint>"
+(( $# >= 3 )) || die "bad arguments ($*): expecting <config> <snapshot id> <mountpoint>"
 CONFIG="$1"
-SNAPSHOT_NAME="$2"
+SNAPSHOT_ID="$2"
 TARGET_DIR="$3"
 shift 3
 
 load_config "$CONFIG" "$@"
 
-SNAPSHOT_PATH="$(btrfs_snapshot_path "$SNAPSHOT_NAME")"
+SNAPSHOT_PATH="$(btrfs_snapshot_path "$SNAPSHOT_ID")"
 
 
 #
@@ -32,7 +32,7 @@ cleanup_add "umount -l '$MOUNT_DIR'"
 
 SNAPSHOT_DIR="$MOUNT_DIR/$SNAPSHOT_PATH"
 if ! [[ -d "$SNAPSHOT_DIR" ]]; then
-	die "bad snapshot dir: $SNAPSHOT_DIR (name: $SNAPSHOT_NAME)"
+	die "bad snapshot dir: $SNAPSHOT_DIR (id: $SNAPSHOT_ID)"
 fi
 
 mkdir -p "$TARGET_DIR"

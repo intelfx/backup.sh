@@ -7,14 +7,14 @@
 # config
 #
 
-(( $# >= 2 )) || die "bad arguments ($*): expecting <config> <snapshot name>"
+(( $# >= 2 )) || die "bad arguments ($*): expecting <config> <snapshot id>"
 CONFIG="$1"
-SNAPSHOT_NAME="$2"
+SNAPSHOT_ID="$2"
 shift 2
 
 load_config "$CONFIG" "$@"
 
-SNAPSHOT_PATH="$(btrfs_snapshot_path "$SNAPSHOT_NAME")"
+SNAPSHOT_PATH="$(btrfs_snapshot_path "$SNAPSHOT_ID")"
 
 
 #
@@ -31,7 +31,7 @@ cleanup_add "umount -l '$MOUNT_DIR'"
 
 SNAPSHOT_DIR="$MOUNT_DIR/$SNAPSHOT_PATH"
 if ! [[ -d "$SNAPSHOT_DIR" ]]; then
-	die "bad snapshot dir: $SNAPSHOT_DIR (name: $SNAPSHOT_NAME)"
+	die "bad snapshot dir: $SNAPSHOT_DIR"
 fi
 
 SUBVOLUMES_LIST_CMD=(
@@ -48,7 +48,7 @@ done
 if (( ${#SUBVOLUMES[@]} )); then
 	btrfs sub del --verbose --commit-after "${SUBVOLUMES[@]}"
 else
-	warn "no subvolumes to delete for '$SNAPSHOT_NAME' -- empty snapshot tree?"
+	warn "no subvolumes to delete for '$SNAPSHOT_ID' -- empty snapshot tree?"
 fi
 
 rm -vrf "$SNAPSHOT_DIR"

@@ -13,8 +13,8 @@ shift 1
 
 load_config "$CONFIG" "$@"
 
-SNAPSHOT_NAME="$(borg_snapshot_name)"
-SNAPSHOT_TAG="$(borg_snapshot_tag "$SNAPSHOT_NAME")"
+SNAPSHOT_ID="$(borg_snapshot_id)"
+SNAPSHOT_TAG="$(borg_snapshot_tag "$SNAPSHOT_ID")"
 
 
 #
@@ -23,12 +23,9 @@ SNAPSHOT_TAG="$(borg_snapshot_tag "$SNAPSHOT_NAME")"
 
 BORG_ARGS=()
 
-# attempt to parse timestamp as ISO 8601
-if SNAPSHOT_TS_UTC="$(TZ=UTC date -d "$SNAPSHOT_NAME" -Iseconds)"; then
-	BORG_ARGS+=( --timestamp "${SNAPSHOT_TS_UTC%+00:00}" )
-else
-	warn "cannot parse tag '$SNAPSHOT_NAME' as ISO 8601 timestamp -- not setting Borg timestamp!"
-fi
+# assume that snapshot IDs are valid (ISO 8601) timestamps
+SNAPSHOT_TS_UTC="$(TZ=UTC date -d "$SNAPSHOT_ID" -Iseconds)"
+BORG_ARGS+=( --timestamp "${SNAPSHOT_TS_UTC%+00:00}" )
 
 # The  mount  points  of  filesystems  or  filesystem  snapshots should be the
 # same for every creation of a new archive to ensure fast operation. This is
@@ -40,13 +37,13 @@ if ! mkdir "$BORG_MOUNT_DIR"; then
 fi
 cleanup_add "backup_unmount.sh '$BORG_MOUNT_DIR'"
 
-"${BORG_MOUNT_CMD[@]}" "$SNAPSHOT_NAME" "$BORG_MOUNT_DIR"
+"${BORG_MOUNT_CMD[@]}" "$SNAPSHOT_ID" "$BORG_MOUNT_DIR"
 # cleanup above
 
 pushd "$BORG_MOUNT_DIR"
 cleanup_add "popd"
 
-log "backing up snapshot '$SNAPSHOT_NAME' using Borg to '$BORG_REPO' as '$SNAPSHOT_TAG'"
+log "backing up snapshot '$SNAPSHOT_ID' using Borg to '$BORG_REPO' as '$SNAPSHOT_TAG'"
 "${BORG_CREATE[@]}" \
 	"${BORG_ARGS[@]}" \
 	"${BORG_REPO}::${SNAPSHOT_TAG}" \
