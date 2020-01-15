@@ -194,10 +194,10 @@ prune_keep_yearly() {
 
 
 #
-# main
+# subroutines, cont.
 #
 
-set_verdict() {
+prune_set_verdict() {
 	local target_verdict="$1" target_rule="$2"
 
 	# set verdict if it has not been set
@@ -211,10 +211,66 @@ set_verdict() {
 	fi
 }
 
-# backups are tried recent-first, as this aligns with daily/weekly/monthly rule semantics
-# (that is, keep the most recent backup in a given timeframe)
-# TODO: might want to implement configurable order
+prune_try_rule() {
+	local keep=0 delete=0
+	local rule=( $rule ) # split words
+	dbg "rule: $(printf "'%s' " "${rule[@]}")"
+
+	if ! [[ "${rule[0]}" == *=* ]]; then
+		"prune_${rule[0]}" "${rule[@]:1}"
+	else
+		load_args "${rule[@]}"
+	fi
+
+	if (( keep )); then
+		prune_set_verdict "keep" "${rule[*]}"
+	fi
+	if (( delete )); then
+		prune_set_verdict "delete" "${rule[*]}"
+	fi
+}
+
+prune_try_backup() {
+	local snap_age="$(( NOW_EPOCH - snap_epoch ))"
+	if (( snap_age <= 0 )); then
+		die "bad backup timestamp, aborting: snap=$snap ($snap_epoch), now=$NOW ($NOW_EPOCH), age=$snap_age <= 0"
+	fi
+
+	log "trying backup: $snap ($snap_epoch), age=$snap_age"
+
+	# only the first matched rule is used to generate a verdict, but we still run all rules to update their state
+	local rule verdict="" verdict_rule=""
+	for rule in "${PRUNE_RULES[@]}"; do
+		prune_try_rule
+	done
+
+	case "$verdict" in
+	keep)
+		log "verdict: $snap = RETAIN (rule: $verdict_rule)"
+		;;
+	delete)
+		log "verdict: $snap = PRUNE (rule: $verdict_rule)"
+		prune_callback "$snap"
+		;;
+	"")
+		die "nothing matched: $snap"
+		;;
+	*)
+		die "bad verdict: $snap = $verdict"
+		;;
+	esac
+}
+
+
+#
+# main
+#
+
 BACKUPS=()
+PRUNE=()
+prune_callback() {
+	PRUNE+=( "$@" )
+}
 
 while read snap; do
 	# FIXME: expecting that name == timestamp
@@ -225,56 +281,15 @@ while read snap; do
 	fi
 	BACKUPS+=( "$snap_epoch $snap_ts $snap" )
 done < <("${PRUNE_LIST[@]}")
+
+# backups are tried recent-first, as this aligns with daily/weekly/monthly rule semantics
+# (that is, keep the most recent backup in a given timeframe)
+# TODO: might want to implement configurable order
 sort_array BACKUPS -r -n -k1
 
-PRUNE=()
 for line in "${BACKUPS[@]}"; do
 	read snap_epoch snap_ts snap <<< "$line"
-	snap_age="$(( NOW_EPOCH - snap_epoch ))"
-	if (( snap_age <= 0 )); then
-		die "bad backup timestamp, aborting: snap=$snap ($snap_epoch), now=$NOW ($NOW_EPOCH), age=$snap_age <= 0"
-	fi
-
-	# only the first matched rule is used to generate a verdict, but we still run all rules to update their state
-	log "trying backup: $snap ($snap_epoch), age=$snap_age"
-	verdict=""
-	verdict_rule=""
-	for rule in "${PRUNE_RULES[@]}"; do
-		keep=0
-		delete=0
-		rule=( $rule ) # split words
-		dbg "rule: $(printf "'%s' " "${rule[@]}")"
-
-		if ! [[ "${rule[0]}" == *=* ]]; then
-			"prune_${rule[0]}" "${rule[@]:1}"
-		else
-			load_args "${rule[@]}"
-		fi
-
-		if (( keep )); then
-			set_verdict "keep" "${rule[*]}"
-		fi
-		if (( delete )); then
-			set_verdict "delete" "${rule[*]}"
-		fi
-	done
-
-	case "$verdict" in
-	keep)
-		log "verdict: $snap = RETAIN (rule: $verdict_rule)"
-		continue
-		;;
-	delete)
-		log "verdict: $snap = PRUNE (rule: $verdict_rule)"
-		PRUNE+=( "$snap" )
-		;;
-	"")
-		die "nothing matched: $snap"
-		;;
-	*)
-		die "bad verdict: $snap = $verdict"
-		;;
-	esac
+	prune_try_backup
 done
 
 if (( ${#PRUNE[@]} )); then
