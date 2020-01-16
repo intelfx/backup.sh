@@ -1,7 +1,15 @@
 #!/hint/bash
 
-(( $# == 1 )) || die "cfg_borg_system.sh: bad arguments($*): expecting <snapshot id>"
-BORG_SNAPSHOT_ID="$1"
+# this configuration accepts different arguments for different operations
+case "$OPERATION" in
+borg_create.sh)
+	(( $# == 1 )) || die "cfg_borg_system.sh: bad arguments($*): expecting <snapshot id>"
+	BORG_SNAPSHOT_ID="$1"
+;;
+*)
+	(( $# == 0 )) || die "cfg_borg_system.sh: extra arguments($*): not expecting anything"
+;;
+esac
 
 BORG_CREATE=(
 	borg create
@@ -20,9 +28,14 @@ BORG_REPO="operator@intelfx.name:/mnt/data/Backups/Hosts/$(hostname)/borg"
 BORG_MOUNT_DIR="/tmp/borg"
 BORG_MOUNT_CMD=( btrfs_mount.sh "$configdir/cfg_btrfs.sh" )
 
-borg_snapshot_id() {
-	echo "$BORG_SNAPSHOT_ID"
-}
+case "$OPERATION" in
+borg_create.sh)
+	borg_snapshot_id() {
+		echo "$BORG_SNAPSHOT_ID"
+	}
+;;
+esac
+
 borg_snapshot_tag() {
 	local id="$1"
 	echo "$(hostname)-${id}"
