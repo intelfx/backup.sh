@@ -24,6 +24,11 @@ BORG_CREATE=(
 BORG_LIST=(
 	borg list
 )
+BORG_DELETE=(
+	borg delete
+	#--stats
+	--verbose --dry-run
+)
 BORG_REPO="operator@intelfx.name:/mnt/data/Backups/Hosts/$(hostname)/borg"
 
 # The directory where the archive source will be mounted at
