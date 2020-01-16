@@ -21,6 +21,9 @@ BORG_CREATE=(
 	--patterns-from "$configdir/cfg_borg_system_patterns.txt"
 	--keep-exclude-tags
 )
+BORG_LIST=(
+	borg list
+)
 BORG_REPO="operator@intelfx.name:/mnt/data/Backups/Hosts/$(hostname)/borg"
 
 # The directory where the archive source will be mounted at
