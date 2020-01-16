@@ -128,3 +128,5 @@ function now() {
 
 NOW="$(date -Iseconds)"
 NOW_EPOCH="$(epoch "$NOW")"
+
+OPERATION="${BASH_SOURCE[1]##*/}"
