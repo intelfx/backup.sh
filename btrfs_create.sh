@@ -21,6 +21,8 @@ SNAPSHOT_PATH="$(btrfs_snapshot_path "$SNAPSHOT_ID")"
 # main
 #
 
+log "creating a recursive snapshot of Btrfs filesystem '$FILESYSTEM' under '$SNAPSHOT_PATH'"
+
 MOUNT_DIR="$(mktemp -d)"
 cleanup_add "rm -rf '$MOUNT_DIR'"
 
@@ -51,7 +53,7 @@ for s in "${SUBVOLUMES[@]}"; do
 	SUBVOLUME_DIR="$MOUNT_DIR/$s"
 	SNAPSHOT_DIR="$MOUNT_DIR/$SNAPSHOT_PATH/$s/snapshot"
 
-	log "snapshotting subvolume '$s' from '$SUBVOLUME_DIR' to '$SNAPSHOT_DIR'"
+	dbg "snapshotting subvolume '$s' from '$SUBVOLUME_DIR' to '$SNAPSHOT_DIR'"
 
 	mkdir -p "${SNAPSHOT_DIR%/*}"
 	btrfs subvolume snapshot "$SUBVOLUME_DIR" "$SNAPSHOT_DIR" >&2

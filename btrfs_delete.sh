@@ -21,7 +21,7 @@ SNAPSHOT_PATH="$(btrfs_snapshot_path "$SNAPSHOT_ID")"
 # main
 #
 
-log "deleting snapshot tree for filesystem '$FILESYSTEM' at '$SNAPSHOT_PATH'"
+log "deleting snapshot tree '$SNAPSHOT_PATH' from Btrfs filesystem '$FILESYSTEM'"
 
 MOUNT_DIR="$(mktemp -d)"
 cleanup_add "rm -rf '$MOUNT_DIR'"
