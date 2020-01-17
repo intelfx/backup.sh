@@ -219,8 +219,8 @@ prune_try_rule() {
 
 prune_try_backup() {
 	local snap_age="$(( NOW_EPOCH - snap_epoch ))"
-	if (( snap_age <= 0 )); then
-		die "bad backup timestamp, aborting: snap=$snap ($snap_epoch), now=$NOW ($NOW_EPOCH), age=$snap_age <= 0"
+	if (( snap_age < 0 )); then
+		die "bad backup timestamp, aborting: snap=$snap ($snap_epoch), now=$NOW ($NOW_EPOCH), age=$snap_age < 0"
 	fi
 
 	log "trying backup: $snap ($snap_epoch), age=$snap_age"
