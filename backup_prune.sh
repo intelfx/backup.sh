@@ -19,6 +19,8 @@ load_config "$CONFIG" "$@"
 # main
 #
 
+log "pruning backups using ${#PRUNE_RULES[@]} rule(s) in $CONFIG"
+
 BACKUPS=()
 PRUNE=()
 prune_callback() {
@@ -42,11 +44,11 @@ for line in "${BACKUPS[@]}"; do
 done
 
 if (( ${#PRUNE[@]} )); then
-	say "Backups to prune:"
-	printf "%s\n" "${PRUNE[@]}"
-fi
+	log "pruning ${#PRUNE[@]} backup(s)"
+	"${PRUNE_DELETE[@]}" "${PRUNE[@]}"
 
-for snap in "${PRUNE[@]}"; do
-	log "pruning backup: $snap"
-	"${PRUNE_DELETE[@]}" "$snap"
-done
+	say "Pruned ids:"
+	printf "%s\n" "${PRUNE[@]}"
+else
+	log "nothing to prune"
+fi
