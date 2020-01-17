@@ -114,6 +114,7 @@ btrfs_remount_id5_to() {
 
 function epoch() {
 	local time="$1"
+	[[ "$time" ]] || die "epoch: empty timestamp passed"
 	date -d "$time" '+%s'
 }
 
