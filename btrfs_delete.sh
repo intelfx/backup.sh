@@ -9,19 +9,24 @@
 
 (( $# >= 2 )) || die "bad arguments ($*): expecting <config> <snapshot id>"
 CONFIG="$1"
-SNAPSHOT_ID="$2"
-shift 2
+shift 1
+SNAPSHOT_IDS=( "$@" )
+shift "${#SNAPSHOT_IDS[@]}"
 
-load_config "$CONFIG" "$@"
-
-SNAPSHOT_PATH="$(btrfs_snapshot_path "$SNAPSHOT_ID")"
+load_config "$CONFIG"
 
 
 #
 # main
 #
 
-log "deleting snapshot tree '$SNAPSHOT_PATH' from Btrfs filesystem '$FILESYSTEM'"
+
+log "deleting ${#SNAPSHOT_IDS[@]} snapshot tree(s) from Btrfs filesystem '$FILESYSTEM'"
+
+if ! (( ${#SNAPSHOT_IDS[@]} )); then
+	warn "nothing to delete"
+	exit 0
+fi
 
 MOUNT_DIR="$(mktemp -d)"
 cleanup_add "rm -rf '$MOUNT_DIR'"
@@ -29,26 +34,32 @@ cleanup_add "rm -rf '$MOUNT_DIR'"
 btrfs_remount_id5_to "$FILESYSTEM" "$MOUNT_DIR"
 cleanup_add "umount -l '$MOUNT_DIR'"
 
-SNAPSHOT_DIR="$MOUNT_DIR/$SNAPSHOT_PATH"
-if ! [[ -d "$SNAPSHOT_DIR" ]]; then
-	die "bad snapshot dir: $SNAPSHOT_DIR"
-fi
+for id in "${SNAPSHOT_IDS[@]}"; do
+	path="$(btrfs_snapshot_path "$id")"
+	log "deleting snapshot tree '$path'"
 
-SUBVOLUMES_LIST_CMD=(
-	btrfs-sub-find --find
-	"$SNAPSHOT_DIR"
-)
+	dir="$MOUNT_DIR/$path"
+	if ! [[ -d "$dir" ]]; then
+		die "bad snapshot dir: $dir"
+	fi
 
-< <( "${SUBVOLUMES_LIST_CMD[@]}" | sort -r ) readarray -t SUBVOLUMES
+	SUBVOLUMES_LIST_CMD=(
+		btrfs-sub-find --find
+		"$dir"
+	)
+
+	< <( "${SUBVOLUMES_LIST_CMD[@]}" | sort -r ) readarray -t -O "${#SUBVOLUMES[@]}" SUBVOLUMES
+	SNAPSHOT_DIRS+=( "$dir" )
+done
 
 for s in "${SUBVOLUMES[@]}"; do
-	log "will delete snapshot '$s'"
+	dbg "will delete snapshot '$s'"
 done
 
 if (( ${#SUBVOLUMES[@]} )); then
 	btrfs sub del --verbose --commit-after "${SUBVOLUMES[@]}"
 else
-	warn "no subvolumes to delete for '$SNAPSHOT_ID' -- empty snapshot tree?"
+	warn "no subvolumes to delete -- empty snapshot tree(s)?"
 fi
 
-rm -vrf "$SNAPSHOT_DIR"
+rm -vrf "${SNAPSHOT_DIRS[@]}"
