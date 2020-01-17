@@ -227,7 +227,7 @@ prune_try_backup() {
 
 	# only the first matched rule is used to generate a verdict, but we still run all rules to update their state
 	local rule verdict="" verdict_rule=""
-	for rule in "${PRUNE_RULES[@]}"; do
+	for rule in "$@"; do
 		prune_try_rule
 	done
 
@@ -246,4 +246,24 @@ prune_try_backup() {
 		die "bad verdict: $snap = $verdict"
 		;;
 	esac
+}
+
+prune_load_backups() {
+	while read snap; do
+		# assume that snapshot IDs are valid (ISO 8601) timestamps
+		snap_epoch="$(epoch "$snap")"
+		BACKUPS+=( "$snap_epoch $snap" )
+	done < <( "$@" )
+
+	# backups are tried recent-first, as this aligns with daily/weekly/monthly rule semantics
+	# (that is, keep the most recent backup in a given timeframe)
+	# TODO: might want to implement configurable order
+	sort_array BACKUPS -r -n -k1
+}
+
+prune_try_backups() {
+	for line in "${BACKUPS[@]}"; do
+		read snap_epoch snap <<< "$line"
+		prune_try_backup "$@"
+	done
 }
