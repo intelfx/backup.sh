@@ -21,6 +21,8 @@ SNAPSHOT_TAG="$(borg_snapshot_tag "$SNAPSHOT_ID")"
 # main
 #
 
+log "backing up snapshot '$SNAPSHOT_ID' to Borg repository '$BORG_REPO' as '$SNAPSHOT_TAG'"
+
 BORG_ARGS=()
 
 # assume that snapshot IDs are valid (ISO 8601) timestamps
@@ -43,7 +45,6 @@ cleanup_add "backup_unmount.sh '$BORG_MOUNT_DIR'"
 pushd "$BORG_MOUNT_DIR"
 cleanup_add "popd"
 
-log "backing up snapshot '$SNAPSHOT_ID' using Borg to '$BORG_REPO' as '$SNAPSHOT_TAG'"
 "${BORG_CREATE[@]}" \
 	"${BORG_ARGS[@]}" \
 	"${BORG_REPO}::${SNAPSHOT_TAG}" \
