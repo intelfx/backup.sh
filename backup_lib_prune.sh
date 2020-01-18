@@ -36,6 +36,7 @@ prune_keep_recent() {
 	(( min_age > 0 )) || die "prune_keep_recent: bad min_age: ${min_age}"
 
 	if (( snap_age < min_age )); then
+		dbg "rule: prune_keep_recent $*: backup $snap is newer than ${min_age} seconds (snap=$snap, now=$NOW), keeping"
 		keep=1
 	fi
 }
@@ -46,6 +47,7 @@ prune_delete_old() {
 	(( max_age > 0 )) || die "prune_delete_old: bad max_age: ${max_age}"
 
 	if (( snap_age > max_age )); then
+		dbg "rule: prune_delete_old $*: backup $snap is older than ${max_age} seconds (snap=$snap, now=$NOW), deleting"
 		delete=1
 	fi
 }
@@ -59,17 +61,17 @@ _prune_keep_within_timeframe() {
 	local min="$(date -d "$max_age" -Iseconds)"
 	local min_epoch="$(epoch "$min")"
 	if (( snap_epoch < min_epoch )); then
-		log "rule: $desc: backup $snap is older than $log_max_age ${log_age_unit}s (snap=$snap, min=$min), skipping"
+		dbg "rule: $desc: backup $snap is older than $log_max_age ${log_age_unit}s (snap=$snap, min=$min), skipping"
 		return
 	fi
 
 	local bucket="$($bucket_f "$snap")"
 	if (( state[$bucket] >= count )); then
-		log "rule: $desc: backup $snap is in excess of allowed $count backups in bucket $bucket (already ${state[$bucket]:-0}), skipping"
+		dbg "rule: $desc: backup $snap is in excess of allowed $count backups in bucket $bucket (already ${state[$bucket]:-0}), skipping"
 		return
 	fi
 
-	log "rule: $desc: backup $snap is within allowed $count backups in bucket $bucket (already ${state[$bucket]:-0}), keeping"
+	dbg "rule: $desc: backup $snap is within allowed $count backups in bucket $bucket (already ${state[$bucket]:-0}), keeping"
 	keep=1
 	(( ++state[$bucket] ))
 }
