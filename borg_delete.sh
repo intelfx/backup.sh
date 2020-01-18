@@ -35,5 +35,5 @@ for id in "${SNAPSHOT_IDS[@]}"; do
 done
 
 "${BORG_DELETE[@]}" \
-	'' \
+	"$BORG_REPO" \
 	"${SNAPSHOT_TAGS[@]}"

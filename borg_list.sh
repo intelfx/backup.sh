@@ -25,6 +25,7 @@ log "listing snapshots matching '$SNAPSHOT_TAG_GLOB' in Borg repository '$BORG_R
 < <("${BORG_LIST[@]}" \
 	--glob-archives "$SNAPSHOT_TAG_GLOB" \
 	--format '{barchive}{NUL}' \
+	"$BORG_REPO" \
 ) readarray -d '' -t SNAPSHOT_TAGS
 
 < <( \
