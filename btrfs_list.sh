@@ -30,7 +30,9 @@ SNAPSHOT_GLOB="'$MOUNT_DIR/$(btrfs_snapshot_path "'*'")'"
 < <(eval "printf '%s\n' $SNAPSHOT_GLOB") readarray -t SNAPSHOT_PATHS
 
 SNAPSHOT_ID_REGEX="^$MOUNT_DIR/$(btrfs_snapshot_path "([^/]+)")$"
-< <(printf "%s\n" "${SNAPSHOT_PATHS[@]}" | sed -r "s|$SNAPSHOT_ID_REGEX|\\1|") readarray -t SNAPSHOT_IDS
+< <(printf "%s\n" "${SNAPSHOT_PATHS[@]}" | sed -nr "s|$SNAPSHOT_ID_REGEX|\\1|p") readarray -t SNAPSHOT_IDS
 
 say "Btrfs snapshots:"
-printf "%s\n" "${SNAPSHOT_IDS[@]}"
+if (( ${#SNAPSHOT_IDS[@]} )); then
+	printf "%s\n" "${SNAPSHOT_IDS[@]}"
+fi
