@@ -28,7 +28,8 @@ FILESYSTEM="/"
 SUBVOLUMES_INCLUDE=(
 	/arch
 )
+# NOTE: POSIX EREs
 SUBVOLUMES_EXCLUDE=(
-	/arch/home/intelfx/.local/share/containers
+	/arch/home/intelfx/\\.local/share/containers
 	/arch/var/lib/machines
 )
