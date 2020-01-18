@@ -18,6 +18,9 @@ load_config "$CONFIG" "$@"
 # main
 #
 
+# *.recreate, *.checkpoint, *.checkpoint.N or any combination
+GARBAGE_REGEX='(?!$)(\.recreate)?(\.checkpoint(\.[0-9]+)?)?$'
+# if the '*' ends up in the trailing position, we will inadvertently match garbage along actual archives
 SNAPSHOT_TAG_GLOB="$(borg_snapshot_tag "*")"
 SNAPSHOT_ID_REGEX="^$(borg_snapshot_tag "(.*)")$"
 
@@ -26,6 +29,7 @@ log "listing snapshots matching '$SNAPSHOT_TAG_GLOB' in Borg repository '$BORG_R
 	--glob-archives "$SNAPSHOT_TAG_GLOB" \
 	--format '{barchive}{NUL}' \
 	"$BORG_REPO" \
+| grep -z -vP "$GARBAGE_REGEX" \
 ) readarray -d '' -t SNAPSHOT_TAGS
 
 < <( \
