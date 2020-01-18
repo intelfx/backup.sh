@@ -7,4 +7,4 @@ SCHEDULE_LIST=( btrfs_list.sh $config )
 SCHEDULE_CREATE=( btrfs_create.sh $config )
 
 load_config "$configdir/cfg_rules_common.sh"
-SCHEDULE_RULES=( "${RULES[@]}" )
+SCHEDULE_RULES=( "${RULES_SCHEDULE[@]}" )
