@@ -26,8 +26,8 @@ BORG_LIST=(
 )
 BORG_DELETE=(
 	borg delete
-	#--stats
-	--verbose --dry-run
+	--stats
+	--verbose
 )
 BORG_REPO="operator@intelfx.name:/mnt/data/Backups/Hosts/$(hostname)/borg"
 
