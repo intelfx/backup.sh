@@ -30,7 +30,7 @@ btrfs_remount_id5_to "$FILESYSTEM" "$MOUNT_DIR"
 cleanup_add "umount -l '$MOUNT_DIR'"
 
 SUBVOLUMES_LIST_CMD=(
-	btrfs-sub-find --physical
+	"${BTRFS_SUBVOLUME_FIND_PHYSICAL[@]}"
 )
 for s in ${SUBVOLUMES_INCLUDE[@]}; do
 	SUBVOLUMES_LIST_CMD+=( "$MOUNT_DIR$s" )
@@ -56,7 +56,7 @@ for s in "${SUBVOLUMES[@]}"; do
 	dbg "snapshotting subvolume '$s' from '$SUBVOLUME_DIR' to '$SNAPSHOT_DIR'"
 
 	mkdir -p "${SNAPSHOT_DIR%/*}"
-	btrfs subvolume snapshot "$SUBVOLUME_DIR" "$SNAPSHOT_DIR" >&2
+	"${BTRFS_SUBVOLUME_SNAPSHOT[@]}" "$SUBVOLUME_DIR" "$SNAPSHOT_DIR" >&2
 done
 
 say "Snapshot id:"

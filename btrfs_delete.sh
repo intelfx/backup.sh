@@ -44,7 +44,7 @@ for id in "${SNAPSHOT_IDS[@]}"; do
 	fi
 
 	SUBVOLUMES_LIST_CMD=(
-		btrfs-sub-find --find
+		"${BTRFS_SUBVOLUME_FIND[@]}"
 		"$dir"
 	)
 
@@ -57,7 +57,7 @@ for s in "${SUBVOLUMES[@]}"; do
 done
 
 if (( ${#SUBVOLUMES[@]} )); then
-	btrfs sub del --verbose --commit-after "${SUBVOLUMES[@]}"
+	"${BTRFS_SUBVOLUME_DELETE[@]}" "${SUBVOLUMES[@]}"
 else
 	warn "no subvolumes to delete -- empty snapshot tree(s)?"
 fi
