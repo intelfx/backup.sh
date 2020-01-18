@@ -77,7 +77,7 @@ _prune_keep_within_timeframe() {
 }
 
 d_keep_minutely() {
-	local ts="$(epoch "$1")"
+	local ts="$(epoch_adjusted "$1")"
 	local bucket="$(( ts - ts % (every * 60) ))"
 	date -d "@$bucket" -Iminutes
 }
@@ -95,7 +95,7 @@ prune_keep_minutely() {
 }
 
 d_keep_hourly() {
-	local ts="$(epoch "$1")"
+	local ts="$(epoch_adjusted "$1")"
 	local bucket="$(( ts - ts % (every * 3600) ))"
 	date -d "@$bucket" -Ihours
 }
@@ -113,7 +113,7 @@ prune_keep_hourly() {
 }
 
 d_keep_daily() {
-	local ts="$(epoch "$1")"
+	local ts="$(epoch_adjusted "$1")"
 	local bucket="$(( ts - ts % (every * 3600 * 24) ))"
 	date -d "@$bucket" -Idate
 }
