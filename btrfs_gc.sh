@@ -17,7 +17,7 @@ load_config "$CONFIG" "$@"
 # main
 #
 
-log "cleaning up obsolete subvolumes after restoring a snapshot for filesystem '$FILESYSTEM'"
+log "garbage collecting obsolete subvolumes (post restore) for Btrfs filesystem '$FILESYSTEM'"
 
 MOUNT_DIR="$(mktemp -d)"
 cleanup_add "rm -rf '$MOUNT_DIR'"
@@ -39,7 +39,13 @@ SUBVOLUMES_LIST_CMD=(
 < <( "${SUBVOLUMES_LIST_CMD[@]}" | sort -r ) readarray -t SUBVOLUMES
 
 for s in "${SUBVOLUMES[@]}"; do
-	log "will delete snapshot '$s'"
+	dbg "will delete snapshot '$s'"
 done
 
-btrfs sub del --verbose --commit-after "${SUBVOLUMES[@]}"
+if (( "${#SUBVOLUMES[@]}" )); then
+	"${BTRFS_SUBVOLUME_DELETE[@]}" "${SUBVOLUMES[@]}"
+else
+	log "no subvolumes to delete"
+fi
+
+find "$OLD_DIR" -mindepth 1 -xdev -depth -type d -empty -exec rm -vd {} \+
