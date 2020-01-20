@@ -112,6 +112,12 @@ btrfs_remount_id5_to() {
 	mount --make-private "$device" "$targetdir" -t btrfs -o "$target_options"
 }
 
+function label() {
+	if [[ -t 1 ]]; then
+		say "$@"
+	fi
+}
+
 function epoch() {
 	local time="$1"
 	[[ "$time" ]] || die "epoch: empty timestamp passed"

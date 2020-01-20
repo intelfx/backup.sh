@@ -34,7 +34,7 @@ if (( ${#PRUNE[@]} )); then
 	log "pruning ${#PRUNE[@]} backup(s)"
 	"${PRUNE_DELETE[@]}" "${PRUNE[@]}"
 
-	say "Pruned ids:"
+	label "Pruned archives:"
 	print_array "${PRUNE[@]}"
 else
 	log "nothing to prune"
