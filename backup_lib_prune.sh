@@ -273,10 +273,6 @@ prune_load_backups() {
 	while read snap; do
 		_prune_add_backup
 	done < <( "$@" )
-	# backups are tried recent-first, as this aligns with daily/weekly/monthly rule semantics
-	# (that is, keep the most recent backup in a given timeframe)
-	# TODO: might want to implement configurable order
-	_prune_sort_backups -r
 }
 
 prune_add_backups() {
@@ -286,9 +282,11 @@ prune_add_backups() {
 	for snap in "$@"; do
 		_prune_add_backup
 	done
-	# backups are tried recent-first, as this aligns with daily/weekly/monthly rule semantics
-	# (that is, keep the most recent backup in a given timeframe)
-	# TODO: might want to implement configurable order
+}
+
+prune_sort_backups() {
+	declare -n backups="$1"
+	shift
 	_prune_sort_backups -r
 }
 

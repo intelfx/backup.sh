@@ -23,6 +23,10 @@ log "scheduling a backup using ${#SCHEDULE_RULES[@]} rule(s) in $CONFIG"
 
 BACKUPS=()
 prune_load_backups BACKUPS "${SCHEDULE_LIST[@]}"
+# backups are tried oldest-first for consistency (so that we try all backups
+# including the one being scheduled in a single order)
+# TODO: prove this is correct
+prune_sort_backups BACKUPS
 
 # first, try all existing backups without storing results to fill the buckets
 prune_callback() {

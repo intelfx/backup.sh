@@ -23,6 +23,10 @@ log "pruning backups using ${#PRUNE_RULES[@]} rule(s) in $CONFIG"
 
 BACKUPS=()
 prune_load_backups BACKUPS "${PRUNE_LIST[@]}"
+# backups are tried recent-first, as this aligns with daily/weekly/monthly rule semantics
+# (that is, keep the most recent backup in a given timeframe)
+# TODO: might want to implement configurable order
+prune_sort_backups BACKUPS -r
 
 PRUNE=()
 prune_callback() {
