@@ -33,10 +33,8 @@ log "listing snapshots matching '$SNAPSHOT_TAG_GLOB' in Borg repository '$BORG_R
 ) readarray -d '' -t SNAPSHOT_TAGS
 
 < <( \
-	printf "%s\n" "${SNAPSHOT_TAGS[@]}" | sed -nr "s|$SNAPSHOT_ID_REGEX|\\1|p" \
+	print_array "${SNAPSHOT_TAGS[@]}" | sed -nr "s|$SNAPSHOT_ID_REGEX|\\1|p" \
 ) readarray -t SNAPSHOT_IDS
 
 say "Borg archives:"
-if (( ${#SNAPSHOT_IDS[@]} )); then
-	printf "%s\n" "${SNAPSHOT_IDS[@]}"
-fi
+print_array "${SNAPSHOT_IDS[@]}"

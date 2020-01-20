@@ -35,7 +35,7 @@ if (( ${#PRUNE[@]} )); then
 	"${PRUNE_DELETE[@]}" "${PRUNE[@]}"
 
 	say "Pruned ids:"
-	printf "%s\n" "${PRUNE[@]}"
+	print_array "${PRUNE[@]}"
 else
 	log "nothing to prune"
 fi
