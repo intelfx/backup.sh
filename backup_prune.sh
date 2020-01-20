@@ -22,13 +22,13 @@ load_config "$CONFIG" "$@"
 log "pruning backups using ${#PRUNE_RULES[@]} rule(s) in $CONFIG"
 
 BACKUPS=()
-prune_load_backups "${PRUNE_LIST[@]}"
+prune_load_backups BACKUPS "${PRUNE_LIST[@]}"
 
 PRUNE=()
 prune_callback() {
 	PRUNE+=( "$@" )
 }
-prune_try_backups "${PRUNE_RULES[@]}"
+prune_try_backups BACKUPS "${PRUNE_RULES[@]}"
 
 if (( ${#PRUNE[@]} )); then
 	log "pruning ${#PRUNE[@]} backup(s)"

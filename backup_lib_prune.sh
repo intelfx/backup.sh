@@ -255,21 +255,48 @@ prune_try_backup() {
 	esac
 }
 
-prune_load_backups() {
-	while read snap; do
-		# assume that snapshot IDs are valid (ISO 8601) timestamps
-		snap_epoch="$(epoch "$snap")"
-		BACKUPS+=( "$snap_epoch $snap" )
-	done < <( "$@" )
+_prune_add_backup() {
+	local snap_epoch
+	# assume that snapshot IDs are valid (ISO 8601) timestamps
+	snap_epoch="$(epoch "$snap")"
+	backups+=( "$snap_epoch $snap" )
+}
 
+_prune_sort_backups() {
+	sort_array backups -n -k1 "$@"
+}
+
+prune_load_backups() {
+	declare -n backups="$1"
+	shift
+	local snap
+	while read snap; do
+		_prune_add_backup
+	done < <( "$@" )
 	# backups are tried recent-first, as this aligns with daily/weekly/monthly rule semantics
 	# (that is, keep the most recent backup in a given timeframe)
 	# TODO: might want to implement configurable order
-	sort_array BACKUPS -r -n -k1
+	_prune_sort_backups -r
+}
+
+prune_add_backups() {
+	declare -n backups="$1"
+	shift
+	local snap
+	for snap in "$@"; do
+		_prune_add_backup
+	done
+	# backups are tried recent-first, as this aligns with daily/weekly/monthly rule semantics
+	# (that is, keep the most recent backup in a given timeframe)
+	# TODO: might want to implement configurable order
+	_prune_sort_backups -r
 }
 
 prune_try_backups() {
-	for line in "${BACKUPS[@]}"; do
+	declare -n backups="$1"
+	shift
+	local snap snap_epoch
+	for line in "${backups[@]}"; do
 		read snap_epoch snap <<< "$line"
 		prune_try_backup "$@"
 	done
