@@ -52,9 +52,14 @@ prune_delete_old() {
 	fi
 }
 
+prune_state_var() {
+	local method="$1"
+	echo "prune_state${PRUNE_STATE:+_${PRUNE_STATE}}__$(echo -n "$method" | tr -cs '[a-zA-Z0-9]' '_')"
+}
+
 _prune_keep_within_timeframe() {
 	# arguments: desc log_max_age log_age_unit max_age bucket
-	state_var="state_$(echo -n "$desc" | tr -cs [a-zA-Z0-9] '_')"
+	state_var="$(prune_state_var "$desc")"
 	declare -g -A "$state_var"
 	declare -n state="$state_var"
 
