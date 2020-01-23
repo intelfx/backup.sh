@@ -19,6 +19,8 @@ load_config "$CONFIG" "$@"
 # main
 #
 
+PRUNE_SILENT=1
+
 log "scheduling a backup using ${#SCHEDULE_RULES[@]} rule(s) in $CONFIG"
 
 BACKUPS=()
