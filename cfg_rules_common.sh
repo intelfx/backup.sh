@@ -20,7 +20,11 @@ RULES_SHORTTERM=(
 )
 
 # keep in mind that scheduling may be invoked with arbitrary $NOW
-RULES_SCHEDULE=(
+RULES_SCHEDULE_OFTEN=(
 	"keep_minutely every=15 count=1"
+	delete=1
+)
+RULES_SCHEDULE_OCCASIONALLY=(
+	"keep_hourly count=1"
 	delete=1
 )
