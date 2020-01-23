@@ -57,14 +57,49 @@ prune_state_var() {
 	echo "prune_state${PRUNE_STATE:+_${PRUNE_STATE}}__$(echo -n "$method" | tr -cs '[a-zA-Z0-9]' '_')"
 }
 
+_prune_parse_max_age() {
+	if (( minutes > 0 )); then
+		# roll back to beginning of the minute, then subtract minutes
+		max_age="$(now -Iminutes) -$minutes minutes"
+		log_max_age="$minutes"
+		log_age_unit="min"
+	elif (( hours > 0 )); then
+		# roll back to 0 minutes, then subtract hours
+		max_age="$(now -Ihours) -$hours hours"
+		log_max_age="$hours"
+		log_age_unit="hour"
+	elif (( days > 0 )); then
+		# roll back to 00:00:00, then subtract days
+		max_age="$(now -Idate) -$days days"
+		log_max_age="$days"
+		log_age_unit="day"
+	elif (( weeks > 0 )); then
+		# roll back to 00:00:00, then roll back to last Monday, then subtract weeks
+		max_age="$(now -Idate) last Monday -$weeks weeks"
+		log_max_age="$weeks"
+		log_age-unit="week"
+	elif (( months > 0 )); then
+		# roll back to 1st of current month, then subtract months
+		max_age="$(date -d "$NOW" '+%Y-%m-01') -$months months"
+		log_max_age="$months"
+		log_age_unit="month"
+	elif (( years > 0 )); then
+		max_age="$(date -d "$NOW" '+%Y-01-01') -$years years"
+		log_max_age="$years"
+		log_age_unit="year"
+	fi
+}
 _prune_keep_within_timeframe() {
 	# arguments: desc log_max_age log_age_unit max_age bucket
 	state_var="$(prune_state_var "$desc")"
 	declare -g -A "$state_var"
 	declare -n state="$state_var"
 
-	local min="$(date -d "$max_age" -Iseconds)"
-	local min_epoch="$(epoch "$min")"
+	local min min_epoch=0
+	if [[ "$max_age" ]]; then
+		min="$(date -d "$max_age" -Iseconds)"
+		min_epoch="$(epoch "$min")"
+	fi
 	if (( snap_epoch < min_epoch )); then
 		dbg "rule: $desc: backup $snap is older than $log_max_age ${log_age_unit}s (snap=$snap, min=$min), skipping"
 		return
@@ -87,14 +122,14 @@ d_keep_minutely() {
 	date -d "@$bucket" -Iminutes
 }
 prune_keep_minutely() {
-	local every=1 count=0 minutes=0
+	local every=1 count=0
+	local minutes=0 hours=0 days=0 weeks=0 months=0 years=0
 	load_args "$@"
 	(( every > 0 )) || die "$FUNCNAME: bad every: ${every}"
 	(( count > 0 )) || die "$FUNCNAME: bad count: ${count}"
-	(( minutes > 0 )) || die "$FUNCNAME: bad minutes: ${hours}"
-	local desc="$FUNCNAME $*" log_max_age="$minutes" log_age_unit="minute"
-	# roll back to beginning of the minute, then subtract minutes
-	local max_age="$(now -Iminutes) -$minutes minutes"
+	local desc="$FUNCNAME $*"
+	local max_age log_max_age log_age_unit
+	_prune_parse_max_age
 	local bucket_f=d_keep_minutely
 	_prune_keep_within_timeframe
 }
@@ -105,14 +140,14 @@ d_keep_hourly() {
 	date -d "@$bucket" -Ihours
 }
 prune_keep_hourly() {
-	local every=1 count=0 hours=0
+	local every=1 count=0
+	local minutes=0 hours=0 days=0 weeks=0 months=0 years=0
 	load_args "$@"
 	(( every > 0 )) || die "$FUNCNAME: bad every: ${every}"
 	(( count > 0 )) || die "$FUNCNAME: bad count: ${count}"
-	(( hours > 0 )) || die "$FUNCNAME: bad hours: ${hours}"
-	local desc="$FUNCNAME $*" log_max_age="$hours" log_age_unit="hour"
-	# roll back to 0 minutes, then subtract hours
-	local max_age="$(now -Ihours) -$hours hours"
+	local desc="$FUNCNAME $*"
+	local max_age log_max_age log_age_unit
+	_prune_parse_max_age
 	local bucket_f=d_keep_hourly
 	_prune_keep_within_timeframe
 }
@@ -123,14 +158,15 @@ d_keep_daily() {
 	date -d "@$bucket" -Idate
 }
 prune_keep_daily() {
-	local every=1 count=0 days=0
+	local every=1 count=0
+	local minutes=0 hours=0 days=0 weeks=0 months=0 years=0
 	load_args "$@"
 	(( every > 0 )) || die "$FUNCNAME: bad every: ${every}"
 	(( count > 0 )) || die "$FUNCNAME: bad count: ${count}"
 	(( days > 0 )) || die "$FUNCNAME: bad hours: ${hours}"
-	local desc="$FUNCNAME $*" log_max_age="$days" log_age_unit="day"
-	# roll back to 00:00:00, then subtract days
-	local max_age="$(now -Idate) -$days days"
+	local desc="$FUNCNAME $*"
+	local max_age log_max_age log_age_unit
+	_prune_parse_max_age
 	local bucket_f=d_keep_daily
 	_prune_keep_within_timeframe
 }
@@ -141,13 +177,14 @@ d_keep_weekly() {
 	date -d "$ts" '+%YW%W'
 }
 prune_keep_weekly() {
-	local count=0 weeks=0
+	local count=0
+	local minutes=0 hours=0 days=0 weeks=0 months=0 years=0
 	load_args "$@"
 	(( count > 0 )) || die "$FUNCNAME: bad count: ${count}"
 	(( weeks > 0 )) || die "$FUNCNAME: bad weeks: ${weeks}"
-	# roll back to 00:00:00, then roll back to last Monday, then subtract weeks
-	local desc="$FUNCNAME $*" log_max_age="$weeks" log_age_unit="week"
-	local max_age="$(now -Idate) last Monday -$weeks weeks"
+	local desc="$FUNCNAME $*"
+	local max_age log_max_age log_age_unit
+	_prune_parse_max_age
 	local bucket_f=d_keep_weekly
 	_prune_keep_within_timeframe
 }
@@ -158,13 +195,13 @@ d_keep_monthly() {
 	date -d "$ts" "+%Y-%m"
 }
 prune_keep_monthly() {
-	local count=0 months=0
+	local count=0
+	local minutes=0 hours=0 days=0 weeks=0 months=0 years=0
 	load_args "$@"
 	(( count > 0 )) || die "prune_keep_monthly: bad count: ${count}"
-	(( months > 0 )) || die "prune_keep_monthly: bad months: ${months}"
-	# roll back to 1st of current month, then subtract months
-	local desc="$FUNCNAME $*" log_max_age="$months" log_age_unit="month"
-	local max_age="$(date -d "$NOW" '+%Y-%m-01') -$months months"
+	local desc="$FUNCNAME $*"
+	local max_age log_max_age log_age_unit
+	_prune_parse_max_age
 	local bucket_f=d_keep_monthly
 	_prune_keep_within_timeframe
 }
@@ -175,13 +212,14 @@ d_keep_yearly() {
 	echo "$(( year - year % every ))"
 }
 prune_keep_yearly() {
-	local every=1 count=0 years=0
+	local every=1 count=0
+	local minutes=0 hours=0 days=0 weeks=0 months=0 years=0
 	load_args "$@"
 	(( every > 0 )) || die "prune_keep_yearly: bad every: ${years}"
 	(( count > 0 )) || die "prune_keep_yearly: bad count: ${count}"
-	(( years > 0 )) || die "prune_keep_yearly: bad years: ${years}"
-	local desc="$FUNCNAME $*" log_max_age="$years" log_age_unit="year"
-	local max_age="$(date -d "$NOW" '+%Y-01-01') -$years years"
+	local desc="$FUNCNAME $*"
+	local max_age log_max_age log_age_unit
+	_prune_parse_max_age
 	local bucket_f=d_keep_yearly
 	_prune_keep_within_timeframe
 }
