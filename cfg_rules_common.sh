@@ -19,8 +19,8 @@ RULES_SHORTTERM=(
 	delete=1
 )
 
-# basically you only need the most relaxed rule that applies to the most recent backups here
+# keep in mind that scheduling may be invoked with arbitrary $NOW
 RULES_SCHEDULE=(
-	"keep_minutely every=15 count=1 minutes=$(( 8*60 ))" # 8 hours
+	"keep_minutely every=15 count=1"
 	delete=1
 )
