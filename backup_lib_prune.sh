@@ -25,6 +25,14 @@ function load_args() {
 	done
 }
 
+function _prune_log() {
+	if (( PRUNE_SILENT )); then
+		dbg "$@"
+	else
+		log "$@"
+	fi
+}
+
 
 #
 # prune rules
@@ -268,7 +276,7 @@ prune_try_backup() {
 		die "bad backup timestamp, aborting: snap=$snap ($snap_epoch), now=$NOW ($NOW_EPOCH), age=$snap_age < 0"
 	fi
 
-	log "trying backup: $snap ($snap_epoch), age=$snap_age"
+	_prune_log "trying backup: $snap ($snap_epoch), age=$snap_age"
 
 	# only the first matched rule is used to generate a verdict, but we still run all rules to update their state
 	local rule verdict="" verdict_rule=""
@@ -278,13 +286,13 @@ prune_try_backup() {
 
 	case "$verdict" in
 	keep)
-		log "verdict: $snap = RETAIN (rule: $verdict_rule)"
+		_prune_log "verdict: $snap = RETAIN (rule: $verdict_rule)"
 		if type -t retain_callback &>/dev/null; then
 			retain_callback "$snap"
 		fi
 		;;
 	delete)
-		log "verdict: $snap = PRUNE (rule: $verdict_rule)"
+		_prune_log "verdict: $snap = PRUNE (rule: $verdict_rule)"
 		if type -t prune_callback &>/dev/null; then
 			prune_callback "$snap"
 		fi
