@@ -20,12 +20,12 @@ load_config_var2 CONSUMER_PRUNE_RULES PRUNE_RULES "$CONSUMER_PRUNE_CONFIG"
 # main
 #
 
-log "consuming backups according to $CONFIG: ${PRODUCER_LIST[*]} -> ${CONSUMER_CREATE[*]}"
+log "consuming backups according to $CONFIG"
 
 # early prune
-if (( ${#PRODUCER_PRUNE_EARLY[@]} )); then
-	log "pruning obsolete source backups before transfer: ${PRODUCER_PRUNE_EARLY[*]}"
-	"${PRODUCER_PRUNE_EARLY[@]}"
+if [[ "$PRODUCER_PRUNE_EARLY_CONFIG" ]]; then
+	log "pruning obsolete source backups before transfer"
+	backup_prune.sh "$PRODUCER_PRUNE_EARLY_CONFIG"
 fi
 
 #
@@ -169,7 +169,7 @@ if (( rc != 0 )); then
 fi
 
 # if we have transferred everything we wanted, perform a final prune
-if (( ${#PRODUCER_PRUNE[@]} )); then
-	log "pruning obsolete source backups after transfer: ${PRODUCER_PRUNE[*]}"
-	"${PRODUCER_PRUNE[@]}"
+if [[ "$PRODUCER_PRUNE_CONFIG" ]]; then
+	log "pruning obsolete source backups after transfer"
+	backup_prune.sh "$PRODUCER_PRUNE_CONFIG"
 fi
