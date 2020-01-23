@@ -279,10 +279,15 @@ prune_try_backup() {
 	case "$verdict" in
 	keep)
 		log "verdict: $snap = RETAIN (rule: $verdict_rule)"
+		if type -t retain_callback &>/dev/null; then
+			retain_callback "$snap"
+		fi
 		;;
 	delete)
 		log "verdict: $snap = PRUNE (rule: $verdict_rule)"
-		prune_callback "$snap"
+		if type -t prune_callback &>/dev/null; then
+			prune_callback "$snap"
+		fi
 		;;
 	"")
 		die "nothing matched: $snap"

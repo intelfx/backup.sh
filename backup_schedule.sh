@@ -29,9 +29,6 @@ prune_load_backups BACKUPS "${SCHEDULE_LIST[@]}"
 prune_sort_backups BACKUPS
 
 # first, try all existing backups without storing results to fill the buckets
-prune_callback() {
-	:
-}
 prune_try_backups BACKUPS "${SCHEDULE_RULES[@]}"
 
 # then, try to see if we can fit the to-be-created backup into any bucket
