@@ -5,10 +5,13 @@ case "$OPERATION" in
 borg_create.sh)
 	(( $# == 1 )) || die "cfg_borg_system.sh: bad arguments($*): expecting <snapshot id>"
 	BORG_SNAPSHOT_ID="$1"
-;;
+	borg_snapshot_id() {
+		echo "$BORG_SNAPSHOT_ID"
+	}
+	;;
 *)
 	(( $# == 0 )) || die "cfg_borg_system.sh: extra arguments($*): not expecting anything"
-;;
+	;;
 esac
 
 BORG_CREATE=(
@@ -35,14 +38,6 @@ BORG_REPO="operator@intelfx.name:/mnt/data/Backups/Hosts/$(hostname)/borg"
 # This must be stable because borg caches absolute pathes
 BORG_MOUNT_DIR="/tmp/borg"
 BORG_MOUNT_CMD=( btrfs_mount.sh "$configdir/cfg_btrfs.sh" )
-
-case "$OPERATION" in
-borg_create.sh)
-	borg_snapshot_id() {
-		echo "$BORG_SNAPSHOT_ID"
-	}
-;;
-esac
 
 borg_snapshot_tag() {
 	local id="$1"
