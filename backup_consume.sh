@@ -14,6 +14,9 @@ shift 1
 load_config "$CONFIG" "$@"
 load_config_var2 CONSUMER_SCHEDULE_RULES SCHEDULE_RULES "$CONSUMER_SCHEDULE_CONFIG"
 load_config_var2 CONSUMER_PRUNE_RULES PRUNE_RULES "$CONSUMER_PRUNE_CONFIG"
+load_config_var2 CONSUMER_LIST SCHEDULE_LIST "$CONSUMER_SCHEDULE_CONFIG"
+load_config_var2 CONSUMER_CREATE SCHEDULE_CREATE "$CONSUMER_SCHEDULE_CONFIG"
+load_config_var2 PRODUCER_LIST PRUNE_LIST "$PRODUCER_PRUNE_CONFIG"
 
 
 #
@@ -23,9 +26,9 @@ load_config_var2 CONSUMER_PRUNE_RULES PRUNE_RULES "$CONSUMER_PRUNE_CONFIG"
 log "consuming backups according to $CONFIG"
 
 # early prune
-if [[ "$PRODUCER_PRUNE_EARLY_CONFIG" ]]; then
+if (( PRODUCER_PRUNE_EARLY )); then
 	log "pruning obsolete source backups before transfer"
-	backup_prune.sh "$PRODUCER_PRUNE_EARLY_CONFIG"
+	backup_prune.sh "$PRODUCER_PRUNE_CONFIG"
 fi
 
 #
@@ -169,7 +172,7 @@ if (( rc != 0 )); then
 fi
 
 # if we have transferred everything we wanted, perform a final prune
-if [[ "$PRODUCER_PRUNE_CONFIG" ]]; then
+if (( PRODUCER_PRUNE_LATE )); then
 	log "pruning obsolete source backups after transfer"
 	backup_prune.sh "$PRODUCER_PRUNE_CONFIG"
 fi
