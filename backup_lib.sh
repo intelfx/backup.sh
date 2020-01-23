@@ -59,6 +59,20 @@ load_config() {
 	. "$config" "$@"
 }
 
+load_config_var() {
+	local var="$1"
+	shift
+
+	eval "$(load_config "$@" && declare -p "$var" | sed -r 's|^declare|& -g|')"
+}
+
+load_config_var2() {
+	local dest="$1" src="$2"
+	shift 2
+
+	eval "$(load_config "$@" && declare -p "$src" | sed -r -e 's|^declare|& -g|' -e "s| $src=| $dest=|")"
+}
+
 btrfs_remount_id5_to() {
 	local src="$1"
 	local targetdir="$2"
