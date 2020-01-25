@@ -1,18 +1,14 @@
 #!/hint/bash
 
 # this configuration accepts different arguments for different operations
-case "$OPERATION" in
-borg_create.sh)
-	(( $# == 1 )) || die "cfg_borg_system.sh: bad arguments($*): expecting <snapshot id>"
+(( $# <= 1 )) || die "bad arguments($*): expecting nothing or <snapshot id>"
+
+if (( $# == 1 )); then
 	BORG_SNAPSHOT_ID="$1"
 	borg_snapshot_id() {
 		echo "$BORG_SNAPSHOT_ID"
 	}
-	;;
-*)
-	(( $# == 0 )) || die "cfg_borg_system.sh: extra arguments($*): not expecting anything"
-	;;
-esac
+fi
 
 BORG_CREATE=(
 	borg create
@@ -21,7 +17,7 @@ BORG_CREATE=(
 	--files-cache ctime,size
 	--compression zstd
 	--exclude-caches
-	--patterns-from "$configdir/cfg_borg_system_patterns.txt"
+	--patterns-from "${BASH_SOURCE%.sh}_patterns.txt"
 	--keep-exclude-tags
 )
 BORG_LIST=(
