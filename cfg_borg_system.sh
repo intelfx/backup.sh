@@ -43,4 +43,6 @@ borg_snapshot_tag() {
 	local id="$1"
 	echo "$(hostname)-${id}"
 }
-export BORG_PASSCOMMAND="unsudo pass misc/borg"
+
+export BORG_PASSCOMMAND="cat /etc/backup.sh/borg_intelfx.name/pass"
+export BORG_RSH="$(ssh_unattended /etc/backup.sh/borg_intelfx.name)"
