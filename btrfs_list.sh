@@ -15,6 +15,16 @@ load_config "$CONFIG" "$@"
 
 
 #
+# signals
+#
+
+sigterm() {
+	log "SIGTERM/SIGINT received, ignoring"
+}
+trap sigterm TERM INT
+
+
+#
 # main
 #
 

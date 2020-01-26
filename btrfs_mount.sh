@@ -19,6 +19,16 @@ SNAPSHOT_PATH="$(btrfs_snapshot_path "$SNAPSHOT_ID")"
 
 
 #
+# signals
+#
+
+sigterm() {
+	log "SIGTERM/SIGINT received, ignoring"
+}
+trap sigterm TERM INT
+
+
+#
 # main
 #
 
