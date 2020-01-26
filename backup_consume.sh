@@ -160,7 +160,9 @@ log_array log "Accepted to consume" "${CANDIDATE_IDS[@]}"
 log "Creating ${#CANDIDATE_IDS[@]} backups"
 rc=0
 for id in "${CANDIDATE_IDS[@]}"; do
-	if ! "${CONSUMER_CREATE[@]}" "$id"; then
+	if "${CONSUMER_CREATE[@]}" "$id"; then
+		: # we cannot invert the condition above because we won't catch its return code
+	else
 		rc2=$?
 		if (( rc == 0 )); then rc=$rc2; fi
 		warn "Failed to consume backup '$id' (rc=$rc2), continuing"
