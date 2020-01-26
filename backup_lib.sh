@@ -1,8 +1,8 @@
 #!/hint/bash
 
-. lib.sh || exit
-
 set -e -o pipefail
+
+. lib.sh || exit
 
 #
 # initialization
