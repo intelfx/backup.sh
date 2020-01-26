@@ -338,7 +338,7 @@ prune_add_backups() {
 prune_sort_backups() {
 	declare -n backups="$1"
 	shift
-	_prune_sort_backups -r
+	_prune_sort_backups "$@"
 }
 
 prune_try_backups() {
