@@ -42,8 +42,8 @@ cleanup_add "backup_unmount.sh '$BORG_MOUNT_DIR'"
 "${BORG_MOUNT_CMD[@]}" "$SNAPSHOT_ID" "$BORG_MOUNT_DIR"
 # cleanup above
 
-pushd "$BORG_MOUNT_DIR"
-cleanup_add "popd"
+pushd "$BORG_MOUNT_DIR" &>/dev/null
+cleanup_add "popd &>/dev/null"
 
 "${BORG_CREATE[@]}" \
 	"${BORG_ARGS[@]}" \
