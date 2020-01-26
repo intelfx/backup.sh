@@ -116,7 +116,7 @@ PRUNE_SILENT=1
 BACKUPS=()
 prune_add_backups BACKUPS "${DESTINATION_IDS[@]}"
 # backups are tried oldest-first for consistency (so that we try all backups
-# including the one being scheduled in a single order)
+# including those being scheduled in a global order)
 # TODO: prove this is correct, see backup_schedule.sh
 prune_sort_backups BACKUPS
 prune_try_backups BACKUPS "${CONSUMER_SCHEDULE_RULES[@]}"
@@ -130,16 +130,19 @@ retain_callback() {
 	CANDIDATE_IDS+=( "$1" )
 }
 prune_try_backups BACKUPS "${CONSUMER_SCHEDULE_RULES[@]}"
-
 log_array log "Scheduled to consume" "${CANDIDATE_IDS[@]}"
 
 #
 # Run a test prune to see which consumed backups would be immediately pruned
 #
+
 BACKUPS=()
 prune_add_backups BACKUPS "${DESTINATION_IDS[@]}"
 prune_add_backups BACKUPS "${CANDIDATE_IDS[@]}"
-prune_sort_backups BACKUPS
+# backups are tried recent-first, as this aligns with daily/weekly/monthly rule semantics
+# (that is, keep the most recent backup in a given timeframe)
+# TODO: might want to implement configurable order, see backup_prune.sh
+prune_sort_backups BACKUPS -r
 declare -A CANDIDATE_HASH
 makeset CANDIDATE_HASH 1 "${CANDIDATE_IDS[@]}"
 CANDIDATE_IDS=()
