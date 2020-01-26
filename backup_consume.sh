@@ -141,7 +141,7 @@ prune_add_backups BACKUPS "${DESTINATION_IDS[@]}"
 prune_add_backups BACKUPS "${CANDIDATE_IDS[@]}"
 prune_sort_backups BACKUPS
 declare -A CANDIDATE_HASH
-make_map CANDIDATE_HASH 1 "${CANDIDATE_IDS[@]}"
+makeset CANDIDATE_HASH 1 "${CANDIDATE_IDS[@]}"
 CANDIDATE_IDS=()
 retain_callback() {
 	if [[ "${CANDIDATE_HASH[$1]}" ]]; then
