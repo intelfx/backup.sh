@@ -12,8 +12,10 @@ fi
 
 BORG_CREATE=(
 	borg create
+	--lock-wait 60
 	--progress
 	--stats
+	--verbose
 	--files-cache ctime,size
 	--compression zstd
 	--exclude-caches
@@ -22,9 +24,12 @@ BORG_CREATE=(
 )
 BORG_LIST=(
 	borg list
+	--lock-wait 60
+	--verbose
 )
 BORG_DELETE=(
 	borg delete
+	--lock-wait 60
 	--stats
 	--verbose
 )
