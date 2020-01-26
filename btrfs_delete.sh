@@ -62,4 +62,4 @@ else
 	warn "no subvolumes to delete -- empty snapshot tree(s)?"
 fi
 
-find "${SNAPSHOT_DIRS[@]}" -xdev -depth -type d -empty -exec rm -vd {} +
+find "${SNAPSHOT_DIRS[@]}" -xdev -depth -type d -empty -execdir rm -vd {} \+
