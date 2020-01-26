@@ -23,11 +23,11 @@ load_config_var2 PRODUCER_LIST PRUNE_LIST "$PRODUCER_PRUNE_CONFIG"
 # main
 #
 
-log "consuming backups according to $CONFIG"
+log "transferring snapshots according to $CONFIG"
 
 # early prune
 if (( PRODUCER_PRUNE_EARLY )); then
-	log "pruning obsolete source backups before transfer"
+	log "pruning obsolete source snapshots before transfer"
 	backup_prune.sh "$PRODUCER_PRUNE_CONFIG"
 fi
 
@@ -86,6 +86,34 @@ fi
 # TODO: prove that this algorithm is equivalent to scheduling and creating (and pruning consumer after) every archive separately
 
 #
+# $CONSUME_STATUS: summary table
+# S: in source
+# D: in destination
+# C: candidate for transfer
+# H: scheduled for transfer
+# R: retained after test prune
+# F: final candidate
+#
+declare -A CONSUME_STATUS
+CONSUME_STATUS_DEFAULT="sdchrf"
+
+consume_flag() {
+	local flag="$1"
+	shift
+
+	flag_lower="$(echo "$flag" | tr "[A-Z]" "[a-z]")"
+	flag_upper="$(echo "$flag" | tr "[a-z]" "[A-Z]")"
+
+	local id flags
+	for id; do
+		flags="${CONSUME_STATUS[$id]:-"$CONSUME_STATUS_DEFAULT"}"
+		flags="${flags/$flag_lower/$flag_upper}"
+		CONSUME_STATUS["$id"]="$flags"
+	done
+}
+
+
+#
 # Load backup lists
 #
 
@@ -93,8 +121,10 @@ declare -a SOURCE_IDS DESTINATION_IDS
 < <("${PRODUCER_LIST[@]}" | sort) readarray -t SOURCE_IDS
 < <("${CONSUMER_LIST[@]}" | sort) readarray -t DESTINATION_IDS
 
-log_array log "Source backups" "${SOURCE_IDS[@]}"
-log_array log "Destination backups" "${DESTINATION_IDS[@]}"
+consume_flag "S" "${SOURCE_IDS[@]}"
+consume_flag "D" "${DESTINATION_IDS[@]}"
+
+log "computing transfer list"
 
 #
 # Compute initial candidates
@@ -104,7 +134,8 @@ log_array log "Destination backups" "${DESTINATION_IDS[@]}"
 	<(print_array "${SOURCE_IDS[@]}") \
 	<(print_array "${DESTINATION_IDS[@]}") \
 ) readarray -t CANDIDATE_IDS
-log_array log "Candidates (not in destination)" "${CANDIDATE_IDS[@]}"
+consume_flag "C" "${CANDIDATE_IDS[@]}"
+
 
 #
 # Schedule candidates onto destination
@@ -130,7 +161,8 @@ retain_callback() {
 	CANDIDATE_IDS+=( "$1" )
 }
 prune_try_backups BACKUPS "${CONSUMER_SCHEDULE_RULES[@]}"
-log_array log "Scheduled to consume" "${CANDIDATE_IDS[@]}"
+consume_flag "H" "${CANDIDATE_IDS[@]}"
+
 
 #
 # Run a test prune to see which consumed backups would be immediately pruned
@@ -147,20 +179,65 @@ declare -A CANDIDATE_HASH
 makeset CANDIDATE_HASH 1 "${CANDIDATE_IDS[@]}"
 CANDIDATE_IDS=()
 retain_callback() {
+	consume_flag "R" "$1"
 	if [[ "${CANDIDATE_HASH[$1]}" ]]; then
 		CANDIDATE_IDS+=( "$1" )
 	fi
 }
 prune_try_backups BACKUPS "${CONSUMER_PRUNE_RULES[@]}"
 unset CANDIDATE_HASH
+consume_flag "F" "${CANDIDATE_IDS[@]}"
 
-log_array log "Accepted to consume" "${CANDIDATE_IDS[@]}"
+
+#
+# Log final status
+#
+
+# sort all backups oldest-first for consistency
+BACKUPS=()
+prune_add_backups BACKUPS "${!CONSUME_STATUS[@]}"
+prune_sort_backups BACKUPS
+< <(prune_get_backups BACKUPS) readarray -t ALL_IDS
+
+dashed="$(printf '%*s' 33 | tr ' ' '-')"
+log "Ready to transfer. Final status:"
+log "$dashed"
+log "Legend:"
+log " S -- in source"
+log " D -- in destination"
+log " C -- candidate (S + !D)"
+log " H -- scheduled for transfer (accepted by destination's schedule rules)"
+log " R -- retained in destination (not going to be immediately pruned)"
+log " F -- final candidate (C + H + R)"
+log "$dashed"
+
+for id in "${ALL_IDS[@]}"; do
+	flags="${CONSUME_STATUS["$id"]}"
+	flags="$(echo -n "$flags" | tr '[a-z]' ' ')"
+	echo "$id"$'\t'"$flags"
+done | column -s $'\t' -t | while read -r line; do
+	log "$line"
+done
+
+log "$dashed"
+
+log "${#CANDIDATE_IDS[@]} snapshots to transfer."
+
+log "$dashed"
+
 
 #
 # Create final candidate backups
 #
 
-log "Creating ${#CANDIDATE_IDS[@]} backups"
+# sort candidates oldest-first, so that we consume backups in a global order
+# from oldest to newest over multiple invocations (useful for e. g. borg caching)
+BACKUPS=()
+prune_add_backups BACKUPS "${CANDIDATE_IDS[@]}"
+prune_sort_backups BACKUPS
+< <(prune_get_backups BACKUPS) readarray -t CANDIDATE_IDS
+
+log "creating ${#CANDIDATE_IDS[@]} snapshots"
 rc=0
 for id in "${CANDIDATE_IDS[@]}"; do
 	if "${CONSUMER_CREATE[@]}" "$id"; then
@@ -168,16 +245,17 @@ for id in "${CANDIDATE_IDS[@]}"; do
 	else
 		rc2=$?
 		if (( rc == 0 )); then rc=$rc2; fi
-		warn "Failed to consume backup '$id' (rc=$rc2), continuing"
+		warn "failed to create '$id' (rc=$rc2), stopping"
+		break
 	fi
 done
 if (( rc != 0 )); then
-	err "Failed to consume some backups, exiting"
+	err "failed to create some snapshots, exiting"
 	exit $rc
 fi
 
 # if we have transferred everything we wanted, perform a final prune
 if (( PRODUCER_PRUNE_LATE )); then
-	log "pruning obsolete source backups after transfer"
+	log "pruning obsolete source snapshots after transfer"
 	backup_prune.sh "$PRODUCER_PRUNE_CONFIG"
 fi
