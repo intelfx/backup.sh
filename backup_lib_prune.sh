@@ -341,6 +341,12 @@ prune_sort_backups() {
 	_prune_sort_backups "$@"
 }
 
+prune_get_backups() {
+	declare -n backups="$1"
+	shift
+	print_array "${backups[@]}" | cut -d' ' -f2
+}
+
 prune_try_backups() {
 	declare -n backups="$1"
 	shift
