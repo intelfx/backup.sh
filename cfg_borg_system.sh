@@ -18,7 +18,8 @@ BORG_CREATE=(
 	--verbose
 	--files-cache ctime,size
 	--compression zstd
-	--exclude-caches
+	--exclude-caches # --exclude-if-present CACHEDIR.TAG
+	--exclude-if-present NOBACKUP.TAG
 	--patterns-from "${BASH_SOURCE%.sh}_patterns.txt"
 	--keep-exclude-tags
 )
