@@ -61,6 +61,15 @@ can_backup_expensive() {
 	(( BACKUP_EXPENSIVE ))
 }
 
+BACKUP_EXPENSIVE=
+
+declare -A PARSE_ARGS
+PARSE_ARGS=(
+	[--all]="BACKUP_EXPENSIVE"
+	[-a]="BACKUP_EXPENSIVE"
+)
+parse_args PARSE_ARGS "$@"
+
 log "Snapshotting btrfs"
 backup_schedule.sh cfg_btrfs_schedule.sh
 
