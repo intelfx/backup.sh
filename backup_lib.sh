@@ -48,6 +48,30 @@ cleanup_do() {
 }
 trap cleanup_do EXIT TERM INT HUP
 
+
+lock_file() {
+	declare -g -A BACKUP_SH_LOCKED_FILES
+
+	local file filepath fd
+	for file; do
+		# resolve path because we use it as a key
+		filepath="$(realpath -qe "$file")"
+		fd="${BACKUP_SH_LOCKED_FILES["$filepath"]}"
+		if [[ "$fd" ]]; then
+			dbg "lock_file: $file: already locked (fd=$fd), skipping"
+			continue
+		fi
+		fd=
+		exec {fd}<"$filepath"
+		if ! flock --exclusive --nonblock "$fd"; then
+			die "lock_file: $file: cannot lock, exiting"
+		fi
+		dbg "lock_file: $file: acquired lock (fd=$fd)"
+		BACKUP_SH_LOCKED_FILES["$filepath"]="$fd"
+	done
+}
+
+
 load_config() {
 	local config="$1"
 	shift 1
@@ -55,6 +79,11 @@ load_config() {
 	if ! [[ -f "$config" && -r "$config" ]]; then
 		die "bad config: '$config'"
 	fi
+
+	# Lock all sourced configuration files for the duration of the backup run
+	# to avoid any possibility of concurrent writes to backup storage
+	lock_file "$config"
+
 	local configdir="$(dirname "$(realpath -qe "$config")")"
 	. "$config" "$@"
 }
@@ -63,6 +92,9 @@ load_config_var() {
 	local var="$1"
 	shift
 
+	# load_config() is executed in a subshell, lock the config explicitly
+	# in the parent process (see above)
+	lock_file "$1"
 	eval "$(load_config "$@" && declare -p "$var" | sed -r 's|^declare|& -g|')"
 }
 
@@ -70,6 +102,9 @@ load_config_var2() {
 	local dest="$1" src="$2"
 	shift 2
 
+	# load_config() is executed in a subshell, lock the config explicitly
+	# in the parent process (see above)
+	lock_file "$1"
 	eval "$(load_config "$@" && declare -p "$src" | sed -r -e 's|^declare|& -g|' -e "s| $src=| $dest=|")"
 }
 
