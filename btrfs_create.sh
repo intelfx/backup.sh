@@ -69,5 +69,5 @@ for s in "${SUBVOLUMES[@]}"; do
 	"${BTRFS_SUBVOLUME_SNAPSHOT[@]}" "$SUBVOLUME_DIR" "$SNAPSHOT_DIR" >&2
 done
 
-say "Snapshot id:"
+label "Snapshot id:"
 echo "$SNAPSHOT_ID"

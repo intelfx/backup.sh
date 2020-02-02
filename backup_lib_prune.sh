@@ -276,7 +276,7 @@ prune_try_backup() {
 		die "bad backup timestamp, aborting: snap=$snap ($snap_epoch), now=$NOW ($NOW_EPOCH), age=$snap_age < 0"
 	fi
 
-	_prune_log "trying backup: $snap ($snap_epoch), age=$snap_age"
+	dbg "trying backup: $snap ($snap_epoch), age=$snap_age"
 
 	# only the first matched rule is used to generate a verdict, but we still run all rules to update their state
 	local rule verdict="" verdict_rule=""

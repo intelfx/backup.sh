@@ -37,9 +37,6 @@ prune_try_backups BACKUPS "${PRUNE_RULES[@]}"
 if (( ${#PRUNE[@]} )); then
 	log "pruning ${#PRUNE[@]} backup(s)"
 	"${PRUNE_DELETE[@]}" "${PRUNE[@]}"
-
-	label "Pruned archives:"
-	print_array "${PRUNE[@]}"
 else
 	log "nothing to prune"
 fi
