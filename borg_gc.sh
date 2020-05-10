@@ -24,12 +24,12 @@ GARBAGE_REGEX='(?!$)(\.recreate)?(\.checkpoint(\.[0-9]+)?)?$'
 # same as above
 SNAPSHOT_TAG_GLOB="$(borg_snapshot_tag "*").*"
 
-< <("${BORG_LIST[@]}" \
+"${BORG_LIST[@]}" \
 	--glob-archives "$SNAPSHOT_TAG_GLOB" \
 	--format '{barchive}{NUL}' \
 	"$BORG_REPO" \
 | grep -z -P "$GARBAGE_REGEX" \
-) readarray -d '' -t SNAPSHOT_TAGS
+| readarray -d '' -t SNAPSHOT_TAGS
 
 for s in "${SNAPSHOT_TAGS[@]}"; do
 	dbg "will delete archive '$s'"

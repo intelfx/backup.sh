@@ -52,7 +52,7 @@ SUBVOLUMES_LIST_CMD=(
 	"$SNAPSHOT_DIR"
 )
 
-< <( "${SUBVOLUMES_LIST_CMD[@]}" ) readarray -t SUBVOLUMES
+"${SUBVOLUMES_LIST_CMD[@]}" | readarray -t SUBVOLUMES
 
 for s in "${SUBVOLUMES[@]}"; do
 	name="${s##*/}"

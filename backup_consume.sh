@@ -118,8 +118,8 @@ consume_flag() {
 #
 
 declare -a SOURCE_IDS DESTINATION_IDS
-< <("${PRODUCER_LIST[@]}" | sort) readarray -t SOURCE_IDS
-< <("${CONSUMER_LIST[@]}" | sort) readarray -t DESTINATION_IDS
+"${PRODUCER_LIST[@]}" | sort | readarray -t SOURCE_IDS
+"${CONSUMER_LIST[@]}" | sort | readarray -t DESTINATION_IDS
 
 consume_flag "S" "${SOURCE_IDS[@]}"
 consume_flag "D" "${DESTINATION_IDS[@]}"
@@ -130,10 +130,10 @@ log "computing transfer list"
 # Compute initial candidates
 #
 
-< <(comm -23 \
+comm -23 \
 	<(print_array "${SOURCE_IDS[@]}") \
 	<(print_array "${DESTINATION_IDS[@]}") \
-) readarray -t CANDIDATE_IDS
+| readarray -t CANDIDATE_IDS
 consume_flag "C" "${CANDIDATE_IDS[@]}"
 
 
@@ -197,7 +197,7 @@ consume_flag "F" "${CANDIDATE_IDS[@]}"
 BACKUPS=()
 prune_add_backups BACKUPS "${!CONSUME_STATUS[@]}"
 prune_sort_backups BACKUPS
-< <(prune_get_backups BACKUPS) readarray -t ALL_IDS
+prune_get_backups BACKUPS | readarray -t ALL_IDS
 
 dashed="$(printf '%*s' 33 | tr ' ' '-')"
 log "Ready to transfer. Final status:"
@@ -235,7 +235,7 @@ log "$dashed"
 BACKUPS=()
 prune_add_backups BACKUPS "${CANDIDATE_IDS[@]}"
 prune_sort_backups BACKUPS
-< <(prune_get_backups BACKUPS) readarray -t CANDIDATE_IDS
+prune_get_backups BACKUPS | readarray -t CANDIDATE_IDS
 
 log "creating ${#CANDIDATE_IDS[@]} snapshots"
 rc=0

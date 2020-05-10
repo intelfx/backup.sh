@@ -25,16 +25,16 @@ SNAPSHOT_TAG_GLOB="$(borg_snapshot_tag "*")"
 SNAPSHOT_ID_REGEX="^$(borg_snapshot_tag "(.*)")$"
 
 log "listing snapshots matching '$SNAPSHOT_TAG_GLOB' in Borg repository '$BORG_REPO'"
-< <("${BORG_LIST[@]}" \
+"${BORG_LIST[@]}" \
 	--glob-archives "$SNAPSHOT_TAG_GLOB" \
 	--format '{barchive}{NUL}' \
 	"$BORG_REPO" \
 | grep -z -vP "$GARBAGE_REGEX" \
-) readarray -d '' -t SNAPSHOT_TAGS
+| readarray -d '' -t SNAPSHOT_TAGS
 
-< <( \
-	print_array "${SNAPSHOT_TAGS[@]}" | sed -nr "s|$SNAPSHOT_ID_REGEX|\\1|p" \
-) readarray -t SNAPSHOT_IDS
+print_array "${SNAPSHOT_TAGS[@]}" \
+| sed -nr "s|$SNAPSHOT_ID_REGEX|\\1|p" \
+| readarray -t SNAPSHOT_IDS
 
 label "Borg archives:"
 print_array "${SNAPSHOT_IDS[@]}"

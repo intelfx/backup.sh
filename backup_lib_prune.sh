@@ -321,9 +321,9 @@ prune_load_backups() {
 	declare -n backups="$1"
 	shift
 	local snap
-	while read snap; do
+	"$@" | while read snap; do
 		_prune_add_backup
-	done < <( "$@" )
+	done
 }
 
 prune_add_backups() {

@@ -43,7 +43,7 @@ SUBVOLUMES_LIST_CMD=(
 	"$OLD_DIR"
 )
 
-< <( "${SUBVOLUMES_LIST_CMD[@]}" | sort -r ) readarray -t SUBVOLUMES
+"${SUBVOLUMES_LIST_CMD[@]}" | sort -r | readarray -t SUBVOLUMES
 
 for s in "${SUBVOLUMES[@]}"; do
 	dbg "will delete snapshot '$s'"
@@ -61,6 +61,6 @@ find "$OLD_DIR" -mindepth 1 -xdev -depth -type d -empty -exec rm -vd {} \;
 log "cleaning up empty snapshot directories for Btrfs filesystem '$FILESYSTEM'"
 
 SNAPSHOT_GLOB="'$MOUNT_DIR/$(btrfs_snapshot_path "'*'")'"
-< <(eval "printf '%s\n' $SNAPSHOT_GLOB") readarray -t SNAPSHOT_DIRS
+eval "printf '%s\n' $SNAPSHOT_GLOB" | readarray -t SNAPSHOT_DIRS
 
 find "${SNAPSHOT_DIRS[@]}" -xdev -depth -type d -empty -exec rm -vd {} \;

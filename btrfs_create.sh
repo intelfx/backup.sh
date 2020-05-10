@@ -56,7 +56,9 @@ done
 dbg "subvolume list cmd: ${SUBVOLUMES_LIST_CMD[*]}"
 dbg "subvolume filter cmd: ${SUBVOLUMES_FILTER_CMD[*]}"
 
-< <( "${SUBVOLUMES_LIST_CMD[@]}" | "${SUBVOLUMES_FILTER_CMD[@]}" ) readarray -t SUBVOLUMES
+"${SUBVOLUMES_LIST_CMD[@]}" \
+| "${SUBVOLUMES_FILTER_CMD[@]}" \
+| readarray -t SUBVOLUMES
 
 for s in "${SUBVOLUMES[@]}"; do
 	s="${s##/}"

@@ -19,7 +19,10 @@ if ! [[ -d "$TARGET_DIR" ]]; then
 	die "bad target directory to unmount: '$TARGET_DIR'"
 fi
 
-< <(</proc/self/mountinfo awk "{ print \$5 }" | grep -E "^$TARGET_DIR(/|$)" | sort -r) readarray -t MOUNTPOINTS
+</proc/self/mountinfo awk "{ print \$5 }" \
+| grep -E "^$TARGET_DIR(/|$)" \
+| sort -r \
+readarray -t MOUNTPOINTS
 
 for m in "${MOUNTPOINTS[@]}"; do
 	log "unmounting '$m'"

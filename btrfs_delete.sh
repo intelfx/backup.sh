@@ -58,7 +58,7 @@ for id in "${SNAPSHOT_IDS[@]}"; do
 		"$dir"
 	)
 
-	< <( "${SUBVOLUMES_LIST_CMD[@]}" | sort -r ) readarray -t -O "${#SUBVOLUMES[@]}" SUBVOLUMES
+	"${SUBVOLUMES_LIST_CMD[@]}" | sort -r | readarray -t -O "${#SUBVOLUMES[@]}" SUBVOLUMES
 	SNAPSHOT_DIRS+=( "$dir" )
 done
 

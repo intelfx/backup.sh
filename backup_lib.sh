@@ -1,6 +1,7 @@
 #!/hint/bash
 
 set -e -o pipefail
+shopt -s lastpipe
 
 . lib.sh || exit
 
