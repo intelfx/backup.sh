@@ -35,7 +35,7 @@ trap sigterm TERM INT
 log "reconstructing snapshot tree for filesystem '$FILESYSTEM' at '$SNAPSHOT_PATH' to '$TARGET_DIR'"
 
 MOUNT_DIR="$(mktemp -d)"
-cleanup_add "rm -rf '$MOUNT_DIR'"
+cleanup_add "rm -df '$MOUNT_DIR'"
 
 btrfs_remount_id5_to "$FILESYSTEM" "$MOUNT_DIR"
 cleanup_add "umount -l '$MOUNT_DIR'"
