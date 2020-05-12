@@ -22,7 +22,7 @@ fi
 </proc/self/mountinfo awk "{ print \$5 }" \
 | grep -E "^$TARGET_DIR(/|$)" \
 | sort -r \
-readarray -t MOUNTPOINTS
+| readarray -t MOUNTPOINTS
 
 for m in "${MOUNTPOINTS[@]}"; do
 	log "unmounting '$m'"
