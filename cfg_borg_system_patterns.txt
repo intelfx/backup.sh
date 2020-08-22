@@ -1,3 +1,5 @@
 - **/.PyCharm*/system/
 - **/.CLion*/system/
 - **/.git/subtree-cache/
+- arch/home/intelfx/dist/
+- arch/home/intelfx/tmp/
