@@ -3,26 +3,24 @@
 set -e -o pipefail
 shopt -s lastpipe
 
-. lib.sh || exit
-
 #
 # initialization
 #
 
-LIBSH_LOG_PREFIX="${BASH_SOURCE[0]##*/}"
+_BACKUP_SH="$(dirname "$BASH_SOURCE")"
+PATH="$_BACKUP_SH:$_BACKUP_SH/lib:$PATH"
+
+. lib.sh || exit
+
+LIBSH_LOG_PREFIX="$(basename "${BASH_SOURCE[0]}")"
 
 if [[ "$BACKUP_SH" ]]; then
 	warn "already loaded, not loading again"
 	return
 fi
+BACKUP_SH="$_BACKUP_SH"
 
-BACKUP_SH="$(dirname "$BASH_SOURCE")"
-if ! [[ -e "$BACKUP_SH/backup_lib.sh" ]]; then
-	die "Cannot infer backup.sh root: '$BACKUP_SH'"
-fi
-export PATH="$BACKUP_SH:$PATH"
-
-LIBSH_LOG_PREFIX="${BASH_SOURCE[1]##*/}"
+LIBSH_LOG_PREFIX="$(basename "${BASH_SOURCE[1]}")"
 
 
 #
