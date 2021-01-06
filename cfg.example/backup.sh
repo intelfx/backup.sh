@@ -1,6 +1,6 @@
 #!/bin/bash -e
 
-. ${BASH_SOURCE%/*}/backup_lib.sh || exit
+. ../backup_lib.sh || exit
 
 cd "${BASH_SOURCE%/*}"
 

@@ -34,4 +34,5 @@ SUBVOLUMES_EXCLUDE=(
 	/arch/home/intelfx/tmp
 	/arch/var/lib/machines
 	/arch/var/tmp
+	/arch/var/lib/containers
 )
