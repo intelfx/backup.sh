@@ -29,7 +29,7 @@ log "listing snapshots matching '$SNAPSHOT_TAG_GLOB' in Borg repository '$BORG_R
 	--glob-archives "$SNAPSHOT_TAG_GLOB" \
 	--format '{barchive}{NUL}' \
 	"$BORG_REPO" \
-| grep -z -vP "$GARBAGE_REGEX" \
+| ( grep -z -vP "$GARBAGE_REGEX" || true ) \
 | readarray -d '' -t SNAPSHOT_TAGS
 
 print_array "${SNAPSHOT_TAGS[@]}" \
