@@ -49,7 +49,7 @@ done
 SUBVOLUMES_FILTER_CMD=(
 	grep -vE
 )
-for s in ${SUBVOLUMES_EXCLUDE[@]}; do
+for s in "${SUBVOLUMES_EXCLUDE[@]}"; do
 	SUBVOLUMES_FILTER_CMD+=( -e "^$s(/|$)" )
 done
 
