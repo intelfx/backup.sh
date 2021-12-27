@@ -48,4 +48,12 @@ cleanup_add "popd &>/dev/null"
 "${BORG_CREATE[@]}" \
 	"${BORG_ARGS[@]}" \
 	"${BORG_REPO}::${SNAPSHOT_TAG}" \
-	.
+	. \
+	&& rc=0 || rc=$?
+
+if (( $rc == 1 )); then
+	warn "warnings when creating archive (rc=$rc), ignoring"
+	exit 0
+else
+	exit $?
+fi
