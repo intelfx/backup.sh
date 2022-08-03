@@ -2,6 +2,7 @@
 
 set -e -o pipefail
 shopt -s lastpipe
+shopt -s extglob
 
 #
 # initialization
@@ -49,29 +50,39 @@ trap cleanup_do EXIT TERM INT HUP
 
 
 lock_file() {
-	declare -g -A BACKUP_SH_LOCKED_FILES
-
+	#
+	# Instead of a nice associative array, we have to mangle the file path
+	# into a plain variable name. This is needed to be able to export those
+	# variables to let our child processes avoid deadlocks.
+	#
 	local file filepath fd
 	for file; do
 		# resolve path because we use it as a key
 		filepath="$(realpath -qe "$file")"
-		fd="${BACKUP_SH_LOCKED_FILES["$filepath"]}"
+		declare -n filevar="BACKUP_SH_LOCKED_${filepath//+([^a-zA-Z0-9_])/_}"
+		fd="$filevar"
 		if [[ "$fd" ]]; then
 			dbg "lock_file: $file: already locked (fd=$fd), skipping"
 			continue
 		fi
 		fd=
 		exec {fd}<"$filepath"
-		if ! flock --exclusive --nonblock "$fd"; then
-			die "lock_file: $file: cannot lock, exiting"
+		if ! flock --nonblock --exclusive "$fd" >&2; then
+			die "lock_file: $file: cannot lock (fd=$fd), exiting"
 		fi
 		dbg "lock_file: $file: acquired lock (fd=$fd)"
-		BACKUP_SH_LOCKED_FILES["$filepath"]="$fd"
+		filevar="$fd"
+		export filevar
+		unset -n filevar
 	done
 }
 
 
 load_config() {
+	if [[ $1 == --unlocked ]]; then
+		local UNLOCKED=1
+		shift 1
+	fi
 	local config="$1"
 	shift 1
 
@@ -79,32 +90,49 @@ load_config() {
 		die "bad config: '$config'"
 	fi
 
-	# Lock all sourced configuration files for the duration of the backup run
-	# to avoid any possibility of concurrent writes to backup storage
-	lock_file "$config"
+	if ! (( UNLOCKED )); then
+		# Lock all sourced configuration files for the duration of the backup run
+		# to avoid any possibility of concurrent writes to backup storage
+		lock_file "$config"
+	fi
 
 	local configdir="$(dirname "$(realpath -qe "$config")")"
 	. "$config" "$@"
 }
 
 load_config_var() {
+	if [[ $1 == --unlocked ]]; then
+		local UNLOCKED=1
+		shift 1
+	fi
 	local var="$1"
 	shift
 
-	# load_config() is executed in a subshell, lock the config explicitly
-	# in the parent process (see above)
-	lock_file "$1"
-	eval "$(load_config "$@" && declare -p "$var" | sed -r 's|^declare|& -g|')"
+	if ! (( UNLOCKED )); then
+		# load_config() is executed in a subshell, lock the config explicitly
+		# in the parent process (see above)
+		lock_file "$1"
+	fi
+
+	eval "$(load_config --unlocked "$@" >/dev/null || exit; declare -p "$var" | sed -r 's|^declare|& -g|')"
 }
 
 load_config_var2() {
-	local dest="$1" src="$2"
+	if [[ $1 == --unlocked ]]; then
+		local UNLOCKED=1
+		shift 1
+	fi
+	local dest="$1"
+	local src="$2"
 	shift 2
 
-	# load_config() is executed in a subshell, lock the config explicitly
-	# in the parent process (see above)
-	lock_file "$1"
-	eval "$(load_config "$@" && declare -p "$src" | sed -r -e 's|^declare|& -g|' -e "s| $src=| $dest=|")"
+	if ! (( UNLOCKED )); then
+		# load_config() is executed in a subshell, lock the config explicitly
+		# in the parent process (see above)
+		lock_file "$1"
+	fi
+
+	eval "$(load_config --unlocked "$@" >/dev/null || exit; declare -p "$src" | sed -r -e 's|^declare|& -g|' -e "s| $src=| $dest=|")"
 }
 
 btrfs_remount_id5_to() {
