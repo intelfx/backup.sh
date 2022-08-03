@@ -8,7 +8,7 @@
 # config
 #
 
-(( $# >= 2 )) || die "bad arguments ($*): expecting <config> <snapshot id>"
+(( $# >= 2 )) || die "bad arguments ($*): expecting <config> <snapshot id...>"
 CONFIG="$1"
 shift 1
 SNAPSHOT_IDS=( "$@" )

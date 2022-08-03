@@ -24,7 +24,7 @@ PRUNE_SILENT=1
 log "scheduling a backup using ${#SCHEDULE_RULES[@]} rule(s) in $CONFIG"
 
 BACKUPS=()
-prune_load_backups BACKUPS "${SCHEDULE_LIST[@]}"
+prune_load_backups BACKUPS "$CONFIG" "$@"
 # backups are tried oldest-first for consistency (so that we try all backups
 # including the one being scheduled in a single order)
 # TODO: prove this is correct
@@ -44,7 +44,7 @@ prune_try_backup "${SCHEDULE_RULES[@]}"
 
 if (( scheduled )); then
 	log "a new backup is accepted at $NOW"
-	exec "${SCHEDULE_CREATE[@]}"
+	invoke create "$CONFIG" "$@"
 else
 	log "no new backups need to be created at $NOW"
 fi

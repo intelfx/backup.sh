@@ -254,6 +254,12 @@ function ssh_unattended() {
 	echo "${ssh[*]}"
 }
 
+#
+# meta
+
+function invoke() {
+	backup.sh "$@"
+}
 
 #
 # variables

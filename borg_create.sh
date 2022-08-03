@@ -38,10 +38,8 @@ BORG_ARGS+=( --timestamp "${SNAPSHOT_TS_UTC%+00:00}" )
 if ! mkdir "$BORG_MOUNT_DIR"; then
 	die "cannot create stable mountpoint '$BORG_MOUNT_DIR' -- already exists?"
 fi
-cleanup_add "backup_unmount.sh '$BORG_MOUNT_DIR'"
-
-"${BORG_MOUNT_CMD[@]}" "$SNAPSHOT_ID" "$BORG_MOUNT_DIR"
-# cleanup above
+cleanup_add "invoke unmount '$BORG_MOUNT_DIR'"
+invoke mount "${SOURCE[@]}" "$SNAPSHOT_ID" "$BORG_MOUNT_DIR"
 
 pushd "$BORG_MOUNT_DIR" &>/dev/null
 cleanup_add "popd &>/dev/null"

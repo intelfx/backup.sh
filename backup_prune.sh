@@ -22,7 +22,7 @@ load_config "$CONFIG" "$@"
 log "pruning backups using ${#PRUNE_RULES[@]} rule(s) in $CONFIG"
 
 BACKUPS=()
-prune_load_backups BACKUPS "${PRUNE_LIST[@]}"
+prune_load_backups BACKUPS "$CONFIG" "$@"
 # backups are tried recent-first, as this aligns with daily/weekly/monthly rule semantics
 # (that is, keep the most recent backup in a given timeframe)
 # TODO: might want to implement configurable order
@@ -36,7 +36,7 @@ prune_try_backups BACKUPS "${PRUNE_RULES[@]}"
 
 if (( ${#PRUNE[@]} )); then
 	log "pruning ${#PRUNE[@]} backup(s)"
-	"${PRUNE_DELETE[@]}" "${PRUNE[@]}"
+	invoke delete "$CONFIG" "${PRUNE[@]}"
 else
 	log "nothing to prune"
 fi

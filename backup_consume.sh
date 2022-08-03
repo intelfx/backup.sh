@@ -7,17 +7,13 @@
 # config
 #
 
-(( $# >= 1 )) || die "bad arguments ($*): expecting <config>"
+(( $# >= 1 )) || die "bad arguments ($*): expecting <destination config>"
 CONFIG="$1"
 shift 1
 
+DESTINATION=( "$CONFIG" "$@" )
 load_config "$CONFIG" "$@"
-load_config_var2 CONSUMER_SCHEDULE_RULES SCHEDULE_RULES "$CONSUMER_SCHEDULE_CONFIG"
-load_config_var2 CONSUMER_PRUNE_RULES PRUNE_RULES "$CONSUMER_PRUNE_CONFIG"
-load_config_var2 CONSUMER_LIST SCHEDULE_LIST "$CONSUMER_SCHEDULE_CONFIG"
-load_config_var2 CONSUMER_CREATE SCHEDULE_CREATE "$CONSUMER_SCHEDULE_CONFIG"
-load_config_var2 PRODUCER_LIST PRUNE_LIST "$PRODUCER_PRUNE_CONFIG"
-
+#SOURCE= is defined in the loaded config
 
 #
 # main
@@ -28,7 +24,7 @@ log "transferring snapshots according to $CONFIG"
 # early prune
 if (( PRODUCER_PRUNE_EARLY )); then
 	log "pruning obsolete source snapshots before transfer"
-	backup_prune.sh "$PRODUCER_PRUNE_CONFIG"
+	invoke prune "${SOURCE[@]}"
 fi
 
 #
@@ -118,8 +114,8 @@ consume_flag() {
 #
 
 declare -a SOURCE_IDS DESTINATION_IDS
-"${PRODUCER_LIST[@]}" | sort | readarray -t SOURCE_IDS
-"${CONSUMER_LIST[@]}" | sort | readarray -t DESTINATION_IDS
+invoke list "${SOURCE[@]}" | sort | readarray -t SOURCE_IDS
+invoke list "${DESTINATION[@]}" | sort | readarray -t DESTINATION_IDS
 
 consume_flag "S" "${SOURCE_IDS[@]}"
 consume_flag "D" "${DESTINATION_IDS[@]}"
@@ -150,7 +146,7 @@ prune_add_backups BACKUPS "${DESTINATION_IDS[@]}"
 # including those being scheduled in a global order)
 # TODO: prove this is correct, see backup_schedule.sh
 prune_sort_backups BACKUPS
-prune_try_backups BACKUPS "${CONSUMER_SCHEDULE_RULES[@]}"
+prune_try_backups BACKUPS "${SCHEDULE_RULES[@]}"
 
 # then schedule candidates and record successfully scheduled
 BACKUPS=()
@@ -160,7 +156,7 @@ CANDIDATE_IDS=()
 retain_callback() {
 	CANDIDATE_IDS+=( "$1" )
 }
-prune_try_backups BACKUPS "${CONSUMER_SCHEDULE_RULES[@]}"
+prune_try_backups BACKUPS "${SCHEDULE_RULES[@]}"
 consume_flag "H" "${CANDIDATE_IDS[@]}"
 
 
@@ -184,7 +180,7 @@ retain_callback() {
 		CANDIDATE_IDS+=( "$1" )
 	fi
 }
-prune_try_backups BACKUPS "${CONSUMER_PRUNE_RULES[@]}"
+prune_try_backups BACKUPS "${PRUNE_RULES[@]}"
 unset CANDIDATE_HASH
 consume_flag "F" "${CANDIDATE_IDS[@]}"
 
@@ -240,7 +236,7 @@ prune_get_backups BACKUPS | readarray -t CANDIDATE_IDS
 log "creating ${#CANDIDATE_IDS[@]} snapshots"
 rc=0
 for id in "${CANDIDATE_IDS[@]}"; do
-	if "${CONSUMER_CREATE[@]}" "$id"; then
+	if invoke create "${DESTINATION[@]}" "$id"; then
 		: # we cannot invert the condition above because we won't catch its return code
 	else
 		rc2=$?
@@ -257,5 +253,5 @@ fi
 # if we have transferred everything we wanted, perform a final prune
 if (( PRODUCER_PRUNE_LATE )); then
 	log "pruning obsolete source snapshots after transfer"
-	backup_prune.sh "$PRODUCER_PRUNE_CONFIG"
+	invoke prune "${SOURCE[@]}"
 fi
