@@ -29,12 +29,12 @@ trap sigterm TERM INT
 # main
 #
 
-log "listing btrfs snapshots for filesystem '$FILESYSTEM'"
+log "listing btrfs snapshots for filesystem '$BTRFS_FILESYSTEM'"
 
 MOUNT_DIR="$(mktemp -d)"
 cleanup_add "rm -df '$MOUNT_DIR'"
 
-btrfs_remount_id5_to "$FILESYSTEM" "$MOUNT_DIR"
+btrfs_remount_id5_to "$BTRFS_FILESYSTEM" "$MOUNT_DIR"
 cleanup_add "umount -l '$MOUNT_DIR'"
 
 SNAPSHOT_GLOB="'$MOUNT_DIR/$(btrfs_snapshot_path "'*'")'"

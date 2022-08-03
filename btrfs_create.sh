@@ -32,25 +32,25 @@ trap sigterm TERM INT
 # main
 #
 
-log "creating a recursive snapshot of Btrfs filesystem '$FILESYSTEM' under '$SNAPSHOT_PATH'"
+log "creating a recursive snapshot of Btrfs filesystem '$BTRFS_FILESYSTEM' under '$SNAPSHOT_PATH'"
 
 MOUNT_DIR="$(mktemp -d)"
 cleanup_add "rm -df '$MOUNT_DIR'"
 
-btrfs_remount_id5_to "$FILESYSTEM" "$MOUNT_DIR"
+btrfs_remount_id5_to "$BTRFS_FILESYSTEM" "$MOUNT_DIR"
 cleanup_add "umount -l '$MOUNT_DIR'"
 
 SUBVOLUMES_LIST_CMD=(
 	"${BTRFS_SUBVOLUME_FIND_PHYSICAL[@]}"
 )
-for s in ${SUBVOLUMES_INCLUDE[@]}; do
+for s in ${BTRFS_SUBVOLUMES_INCLUDE[@]}; do
 	SUBVOLUMES_LIST_CMD+=( "$MOUNT_DIR$s" )
 done
 
 SUBVOLUMES_FILTER_CMD=(
 	grep -vE
 )
-for s in "${SUBVOLUMES_EXCLUDE[@]}"; do
+for s in "${BTRFS_SUBVOLUMES_EXCLUDE[@]}"; do
 	SUBVOLUMES_FILTER_CMD+=( -e "^$s(/|$)" )
 done
 

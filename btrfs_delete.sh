@@ -32,7 +32,7 @@ trap sigterm TERM INT
 #
 
 
-log "deleting ${#SNAPSHOT_IDS[@]} snapshot tree(s) from Btrfs filesystem '$FILESYSTEM'"
+log "deleting ${#SNAPSHOT_IDS[@]} snapshot tree(s) from Btrfs filesystem '$BTRFS_FILESYSTEM'"
 
 if ! (( ${#SNAPSHOT_IDS[@]} )); then
 	warn "nothing to delete"
@@ -42,7 +42,7 @@ fi
 MOUNT_DIR="$(mktemp -d)"
 cleanup_add "rm -df '$MOUNT_DIR'"
 
-btrfs_remount_id5_to "$FILESYSTEM" "$MOUNT_DIR"
+btrfs_remount_id5_to "$BTRFS_FILESYSTEM" "$MOUNT_DIR"
 cleanup_add "umount -l '$MOUNT_DIR'"
 
 for id in "${SNAPSHOT_IDS[@]}"; do

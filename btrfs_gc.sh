@@ -28,12 +28,12 @@ trap sigterm TERM INT
 # main
 #
 
-log "cleaning up obsolete subvolumes (post restore) for Btrfs filesystem '$FILESYSTEM'"
+log "cleaning up obsolete subvolumes (post restore) for Btrfs filesystem '$BTRFS_FILESYSTEM'"
 
 MOUNT_DIR="$(mktemp -d)"
 cleanup_add "rm -df '$MOUNT_DIR'"
 
-btrfs_remount_id5_to "$FILESYSTEM" "$MOUNT_DIR"
+btrfs_remount_id5_to "$BTRFS_FILESYSTEM" "$MOUNT_DIR"
 cleanup_add "umount -l '$MOUNT_DIR'"
 
 OLD_DIR="$MOUNT_DIR/old"
@@ -59,7 +59,7 @@ fi
 find "$OLD_DIR" -mindepth 1 -xdev -depth -type d -empty -exec rm -vd {} \;
 
 
-log "cleaning up empty snapshot directories for Btrfs filesystem '$FILESYSTEM'"
+log "cleaning up empty snapshot directories for Btrfs filesystem '$BTRFS_FILESYSTEM'"
 
 SNAPSHOT_GLOB="'$MOUNT_DIR/$(btrfs_snapshot_path "'*'")'"
 eval "printf '%s\n' $SNAPSHOT_GLOB" | readarray -t SNAPSHOT_DIRS
