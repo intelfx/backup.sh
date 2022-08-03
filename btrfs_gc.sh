@@ -1,6 +1,7 @@
 #!/bin/bash -e
 
 . ${BASH_SOURCE%/*}/backup_lib.sh || exit
+. btrfs_lib.sh || exit
 
 #
 # config
