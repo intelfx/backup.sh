@@ -55,5 +55,5 @@ if (( $rc == 1 )); then
 	warn "warnings when creating archive (rc=$rc), ignoring"
 	exit 0
 else
-	exit $?
+	exit $rc
 fi
