@@ -51,6 +51,15 @@ __config_load_job() {
 
 }
 
+__config_declare_mangle() {
+	sed -r 's|^declare|& -g|'
+}
+
+__config_declare_mangle_strip() {
+	local prefix="$1"
+	sed -r "s|^(declare) ((-[a-zA-Z0-9-]+ )+)${prefix}_(.+)$|\1 -g \2\4|"
+}
+
 config_get_global() {
 	local __vars=( "$@" )
 
@@ -59,7 +68,7 @@ config_get_global() {
 		__vars_data="$(
 			set -eo pipefail
 			__config_load_global
-			declare -p "${__vars[@]}" | sed -r 's|^declare|& -g|'
+			declare -p "${__vars[@]}" | __config_declare_mangle
 		)"
 		eval "$__vars_data"
 	else
@@ -80,9 +89,9 @@ config_get_job() {
 			#       from the global config (prefixed) and
 			#       from the job config (non-prefixed)
 			if [[ $__config_load_job__has_file ]]; then
-				declare -p "${__vars[@]}" | sed -r 's|^declare|& -g|'
+				declare -p "${__vars[@]}" | __config_declare_mangle
 			else
-				declare -p "${__vars[@]/#/${__job}_}" | sed -r "s|^(declare) ([ a-zA-Z0-9-]+) ${__job}_(.+)$|\1 -g \2 \3|"
+				declare -p "${__vars[@]/#/${__job}_}" | __config_declare_mangle_strip "$__job"
 			fi
 		)"
 		eval "$__vars_data"
