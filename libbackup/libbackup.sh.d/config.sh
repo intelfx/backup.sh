@@ -100,3 +100,7 @@ config_get_job() {
 		return 1
 	fi
 }
+
+config_source() {
+	__config_load_file "$1"
+}
