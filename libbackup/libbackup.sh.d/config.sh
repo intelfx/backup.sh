@@ -60,6 +60,11 @@ __config_declare_mangle_strip() {
 	sed -r "s|^(declare) ((-[a-zA-Z0-9-]+ )+)${prefix}_(.+)$|\1 -g \2\4|"
 }
 
+__config_declare_mangle_strip_f() {
+	local prefix="$1"
+	sed -r "s|^${prefix}_(.+) \(\) *$|\1 ()|"
+}
+
 config_get_global() {
 	local __vars=( "$@" )
 
@@ -97,6 +102,30 @@ config_get_job() {
 		eval "$__vars_data"
 	else
 		err "config_get_job: unimplemented: getting all variables"
+		return 1
+	fi
+}
+
+config_get_job_f() {
+	local __job="$1" __vars=( "${@:2}" )
+
+	if (( ${#__vars[@]} )); then
+		local __vars_data
+		__vars_data="$(
+			set -eo pipefail
+			__config_load_job "$__job"
+			# TODO: support mixing and matching functions
+			#       from the global config (prefixed) and
+			#       from the job config (non-prefixed)
+			if [[ $__config_load_job__has_file ]]; then
+				declare -pf "${__vars[@]}"
+			else
+				declare -pf "${__vars[@]/#/${__job}_}" | __config_declare_mangle_strip_f "$__job"
+			fi
+		)"
+		eval "$__vars_data"
+	else
+		err "config_get_job_f: unimplemented: getting all functions"
 		return 1
 	fi
 }
