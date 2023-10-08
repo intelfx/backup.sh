@@ -17,6 +17,11 @@ Common verbs:
 Available verbs are defined by the job.
 EOF
 }
+_usage_common_syntax="Usage: $0 [-c|--config CONFIG]"
+_usage_common_options="
+Global options:
+	-c|--config CONFIG 	Path to main configuration file or directory
+"
 
 ARG_CONFIG_DEFAULT="$BSH_ROOT_DIR/cfg"
 declare -A GLOBAL_OPTIONS=(
