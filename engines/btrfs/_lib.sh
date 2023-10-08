@@ -15,6 +15,55 @@ BTRFS_SUBVOLUME_FIND_PHYSICAL=(
 	btrfs-sub-find --physical
 )
 
+BTRFS_AWK_PROG='
+function issubdir(rootdir, subdir) {
+	if (rootdir == "/") {
+		rootdir_t = rootdir
+	} else {
+		rootdir_t = rootdir "/"
+	}
+
+	if (rootdir == subdir) {
+		return 1
+	} else if (index(subdir, rootdir_t) == 1) {
+		return 1
+	} else {
+		return 0
+	}
+}
+BEGIN {
+	best=0
+}
+issubdir($5, dirname) {
+	sep=0
+	for (i = 7; i <= NF; ++i) {
+		if ($i == "-") {
+			sep = i
+			break
+		}
+	}
+	if (sep == 0) { exit 1 }
+
+	if (length($5) >= best) {
+		best=length($5)
+		mountpoint=$5
+		fstype=$(sep+1)
+		device=$(sep+2)
+		options=$(sep+3)
+	}
+}
+END {
+	if (best > 0) {
+		print "mountpoint=\"" mountpoint "\""
+		print "fstype=\"" fstype "\""
+		print "device=\"" device "\""
+		print "options=\"" options "\""
+		exit 0
+	} else {
+		exit 1
+	}
+}
+'
 btrfs_remount_id5_to() {
 	local src="$1"
 	local targetdir="$2"
@@ -24,26 +73,18 @@ btrfs_remount_id5_to() {
 		return 1
 	fi
 
-	local cur="$src"
-	local fstype device options
-	while [[ "$cur" ]]; do
-		dbg "btrfs_remount_id5_to: checking '$cur'"
-		if </proc/self/mountinfo awk "BEGIN { rc=1 } \$5 == \"$cur\" { rc=0 } END { exit rc }"; then
-			fstype="$(</proc/self/mountinfo awk "\$5 == \"$cur\" { print \$9 }")"
-			device="$(</proc/self/mountinfo awk "\$5 == \"$cur\" { print \$10 }")"
-			options="$(</proc/self/mountinfo awk "\$5 == \"$cur\" { print \$11 }")"
-			break
-		fi
-		cur="$(dn "$cur")"
-	done
+	local vars mountpoint fstype device options
+	if vars="$(awk -v "dirname=$src" "$BTRFS_AWK_PROG" /proc/self/mountinfo)"; then
+		eval "$vars"
+	fi
 
 	if ! [[ "$fstype" && "$device" ]]; then
 		err "btrfs_remount_id5_to: could not find a mountpoint for '$src'"
 		return 1
 	fi
-	dbg "btrfs_remount_id5_to: found mountpoint for '$src': device=$device, fstype=$fstype"
+	dbg "btrfs_remount_id5_to: found mountpoint for '$src': mountpoint=$mountpoint, device=$device, fstype=$fstype, options=$options"
 	if [[ "$fstype" != btrfs ]]; then
-		err "btrfs_remount_id5_to: src '$src' belongs to '$cur' which is $fstype != btrfs"
+		err "btrfs_remount_id5_to: src '$src' belongs to '$mountpoint' which is $fstype != btrfs"
 		return 1
 	fi
 	if ! [[ -b "$device" ]]; then
@@ -58,13 +99,13 @@ btrfs_remount_id5_to() {
 	target_options="$(<<<"$options" sed -r -e 's|,?subvol=.*$||' -e 's|,?subvolid=[^,]*||')"
 
 	if <<<"$target_options" grep -E '(subvol|subvolid)='; then
-		err "btrfs_remount_id5_to: could not cleanup mount options for '$cur': '$options'"
+		err "btrfs_remount_id5_to: could not cleanup mount options for '$mountpoint': '$options'"
 		return 1
 	fi
 
 	target_options="$target_options,subvolid=5"
 
-	dbg "btrfs_remount_id5_to: mounting root subvolume of '$device' on '$targetdir with '$target_options'"
+	dbg "btrfs_remount_id5_to: mounting root subvolume of '$device' on '$targetdir' with '$target_options'"
 	mount --make-private "$device" "$targetdir" -t btrfs -o "$target_options"
 }
 
