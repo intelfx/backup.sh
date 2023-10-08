@@ -34,7 +34,7 @@ btrfs_remount_id5_to() {
 			options="$(</proc/self/mountinfo awk "\$5 == \"$cur\" { print \$11 }")"
 			break
 		fi
-		cur="${cur%/*}"
+		cur="$(dn "$cur")"
 	done
 
 	if ! [[ "$fstype" && "$device" ]]; then
