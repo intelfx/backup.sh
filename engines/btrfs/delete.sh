@@ -51,10 +51,6 @@ for id in "${SNAPSHOT_IDS[@]}"; do
 	SNAPSHOT_DIRS+=( "$dir" )
 done
 
-for s in "${SUBVOLUMES[@]}"; do
-	dbg "will delete snapshot '$s'"
-done
-
 SUBVOLUMES_LIST_CMD=(
 	"${BTRFS_SUBVOLUME_FIND[@]}"
 	"${SNAPSHOT_DIRS[@]}"

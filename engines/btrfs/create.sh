@@ -63,9 +63,6 @@ if ! (( ${#BTRFS_SUBVOLUMES_EXCLUDE[@]} )); then
 	SUBVOLUMES_FILTER_CMD=( cat )
 fi
 
-dbg "subvolume list cmd: ${SUBVOLUMES_LIST_CMD[*]}"
-dbg "subvolume filter cmd: ${SUBVOLUMES_FILTER_CMD[*]}"
-
 "${SUBVOLUMES_LIST_CMD[@]}" | "${SUBVOLUMES_FILTER_CMD[@]}" | sort -u | readarray -t SUBVOLUMES
 
 for s in "${SUBVOLUMES[@]}"; do

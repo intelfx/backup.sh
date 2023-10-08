@@ -40,10 +40,6 @@ if [[ -e "$OLD_DIR" ]]; then
 
 	"${SUBVOLUMES_LIST_CMD[@]}" | sort -r | readarray -t SUBVOLUMES
 
-	for s in "${SUBVOLUMES[@]}"; do
-		dbg "will delete snapshot '$s'"
-	done
-
 	if (( "${#SUBVOLUMES[@]}" )); then
 		"${BTRFS_SUBVOLUME_DELETE[@]}" "${SUBVOLUMES[@]}"
 	else
