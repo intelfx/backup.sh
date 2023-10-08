@@ -54,6 +54,30 @@ __verb_expect_args_ge() {
 	fi
 }
 
+__verb_expect_args_range() {
+	local ge="$1" le="$2"
+	if ! (( ${#VERB_ARGS[@]} >= ge && ${#VERB_ARGS[@]} <= le )); then
+		usage "expected between $ge and $le argument(s)"
+	fi
+}
+
+__verb_expect_args_one_of() {
+	local arg
+	for arg; do
+		if (( ${#VERB_ARGS[@]} == arg )); then
+			return
+		fi
+	done
+	usage
+	if (( $# == 1 )); then
+		usage "expected $1 argument(s)"
+	elif (( $# == 2 )); then
+		usage "expected $1 or $2 argument(s)"
+	else
+		usage "expected $(join ", " "${@:1:$#-1}") or ${@:$#} argument(s)"
+	fi
+}
+
 __verb_check_job() {
 	local job="$1"
 	local j
