@@ -1,17 +1,25 @@
-#!/bin/bash -e
+#!/hint/bash
 
-. ${BASH_SOURCE%/*}/backup_lib.sh || exit
-. btrfs_lib.sh || exit
+#
+# options
+#
+
+_usage() {
+	cat <<EOF
+$_usage_common_syntax gc <JOB>
+$_usage_common_options
+EOF
+}
+
+__verb_expect_args 1
+
 
 #
 # config
 #
 
-(( $# >= 1 )) || die "bad arguments ($*): expecting <config>"
-CONFIG="$1"
-shift 1
-
-load_config "$CONFIG" "$@"
+config_get_job "$JOB_NAME" BTRFS_FILESYSTEM
+config_get_job_f "$JOB_NAME" btrfs_snapshot_path
 
 
 #
@@ -57,7 +65,6 @@ else
 fi
 
 find "$OLD_DIR" -mindepth 1 -xdev -depth -type d -empty -exec rm -vd {} \;
-
 
 log "cleaning up empty snapshot directories for Btrfs filesystem '$BTRFS_FILESYSTEM'"
 
