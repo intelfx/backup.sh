@@ -59,4 +59,4 @@ SNAPSHOT_GLOB="'$MOUNT_DIR/$(btrfs_snapshot_path "'*'")'"
 #       Thus, explicitly unmatch "snapshot" directories. The drawback
 #       is that an empty dir after a subvolume whose basename was "snapshot"
 #       will also be ignored.
-maybe_find "${SNAPSHOT_DIRS[@]}" -xdev -depth -type d -not -name snapshot -empty -exec rm -vd {} \;
+maybe_find "${SNAPSHOT_DIRS[@]}" -xdev -depth -type d -not -name snapshot -empty -delete
