@@ -56,7 +56,7 @@ SUBVOLUMES_LIST_CMD=(
 	"${SNAPSHOT_DIRS[@]}"
 )
 
-"${SUBVOLUMES_LIST_CMD[@]}" | sort -ur | readarray -t SUBVOLUMES
+"${SUBVOLUMES_LIST_CMD[@]}" | sort -u | readarray -t SUBVOLUMES
 
 if (( ${#SUBVOLUMES[@]} )); then
 	"${BTRFS_SUBVOLUME_DELETE[@]}" "${SUBVOLUMES[@]}"

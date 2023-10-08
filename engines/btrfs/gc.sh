@@ -38,7 +38,7 @@ if [[ -e "$OLD_DIR" ]]; then
 		"$OLD_DIR"
 	)
 
-	"${SUBVOLUMES_LIST_CMD[@]}" | sort -r | readarray -t SUBVOLUMES
+	"${SUBVOLUMES_LIST_CMD[@]}" | readarray -t SUBVOLUMES
 
 	if (( "${#SUBVOLUMES[@]}" )); then
 		"${BTRFS_SUBVOLUME_DELETE[@]}" "${SUBVOLUMES[@]}"
