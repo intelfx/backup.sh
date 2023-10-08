@@ -1,3 +1,6 @@
 [submodule "lib"]
 	path = lib
 	url = https://github.com/intelfx/lib
+[submodule "engines/btrfs/_lib/btrfs-tools"]
+	path = engines/btrfs/_lib/btrfs-tools
+	url = https://github.com/intelfx/btrfs-tools
