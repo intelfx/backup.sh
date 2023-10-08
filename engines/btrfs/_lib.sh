@@ -3,10 +3,10 @@
 export PATH="$JOB_VERB_DIR/_lib/btrfs-tools:$PATH"
 
 BTRFS_SUBVOLUME_SNAPSHOT=(
-	btrfs sub snap -r
+	btrfs subvolume snapshot -r
 )
 BTRFS_SUBVOLUME_DELETE=(
-	btrfs sub del --verbose --commit-after
+	btrfs subvolume delete --verbose --commit-after
 )
 BTRFS_SUBVOLUME_FIND=(
 	btrfs-sub-find --find
