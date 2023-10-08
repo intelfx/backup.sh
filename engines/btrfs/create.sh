@@ -33,26 +33,13 @@ SNAPSHOT_PATH="$(btrfs_snapshot_path "$SNAPSHOT_ID")"
 
 
 #
-# signals
-#
-
-sigterm() {
-	log "SIGTERM/SIGINT received, ignoring"
-}
-trap sigterm TERM INT
-
-
-#
 # main
 #
 
 log "creating a recursive snapshot of Btrfs filesystem '$BTRFS_FILESYSTEM' under '$SNAPSHOT_PATH'"
 
-MOUNT_DIR="$(mktemp -d)"
-cleanup_add "rm -df '$MOUNT_DIR'"
-
-btrfs_remount_id5_to "$BTRFS_FILESYSTEM" "$MOUNT_DIR"
-cleanup_add "umount -l '$MOUNT_DIR'"
+btrfs_setup_signals
+btrfs_setup_from_path MOUNT_DIR "$BTRFS_FILESYSTEM"
 
 SUBVOLUMES_LIST_CMD=(
 	"${BTRFS_SUBVOLUME_FIND_PHYSICAL[@]}"

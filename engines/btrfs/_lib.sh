@@ -65,3 +65,23 @@ btrfs_remount_id5_to() {
 	dbg "btrfs_remount_id5_to: mounting root subvolume of '$device' on '$targetdir with '$target_options'"
 	mount --make-private "$device" "$targetdir" -t btrfs -o "$target_options"
 }
+
+btrfs_setup_signals() {
+	sigterm() {
+		log "Signal received, ignoring"
+	}
+	trap sigterm TERM INT HUP
+}
+
+# $1: mount directory variable name (output)
+# $2: btrfs filesystem path
+btrfs_setup_from_path() {
+	declare -n mount_dir="$1"
+	local btrfs_path="$2"
+
+	mount_dir="$(mktemp -d)"
+	cleanup_add "rm -df '$mount_dir'"
+
+	btrfs_remount_id5_to "$btrfs_path" "$mount_dir"
+	cleanup_add "umount -l '$mount_dir'"
+}

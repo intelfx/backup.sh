@@ -23,26 +23,13 @@ config_get_job_f "$JOB_NAME" btrfs_snapshot_path
 
 
 #
-# signals
-#
-
-sigterm() {
-	log "SIGTERM/SIGINT received, ignoring"
-}
-trap sigterm TERM INT
-
-
-#
 # main
 #
 
 log "cleaning up obsolete subvolumes (post restore) for Btrfs filesystem '$BTRFS_FILESYSTEM'"
 
-MOUNT_DIR="$(mktemp -d)"
-cleanup_add "rm -df '$MOUNT_DIR'"
-
-btrfs_remount_id5_to "$BTRFS_FILESYSTEM" "$MOUNT_DIR"
-cleanup_add "umount -l '$MOUNT_DIR'"
+btrfs_setup_signals
+btrfs_setup_from_path MOUNT_DIR "$BTRFS_FILESYSTEM"
 
 OLD_DIR="$MOUNT_DIR/old"
 mkdir -p "$OLD_DIR"

@@ -23,26 +23,13 @@ config_get_job_f "$JOB_NAME" btrfs_snapshot_path
 
 
 #
-# signals
-#
-
-sigterm() {
-	log "SIGTERM/SIGINT received, ignoring"
-}
-trap sigterm TERM INT
-
-
-#
 # main
 #
 
 log "listing btrfs snapshots for filesystem '$BTRFS_FILESYSTEM'"
 
-MOUNT_DIR="$(mktemp -d)"
-cleanup_add "rm -df '$MOUNT_DIR'"
-
-btrfs_remount_id5_to "$BTRFS_FILESYSTEM" "$MOUNT_DIR"
-cleanup_add "umount -l '$MOUNT_DIR'"
+btrfs_setup_signals
+btrfs_setup_from_path MOUNT_DIR "$BTRFS_FILESYSTEM"
 
 SNAPSHOT_GLOB="'$MOUNT_DIR/$(btrfs_snapshot_path "'*'")'"
 (shopt -s nullglob; eval "print_array $SNAPSHOT_GLOB") | readarray -t SNAPSHOT_PATHS
