@@ -97,8 +97,8 @@ elif [[ $VERB == ls-verbs ]]; then
 	__verb_expect_args 1
 	__verb_check_job "${VERB_ARGS[0]}"
 
-	JOB="${VERB_ARGS[0]}"
-	config_get_job "$JOB" TYPE
+	JOB_NAME="${VERB_ARGS[0]}"
+	config_get_job_as "$JOB_NAME" TYPE JOB_TYPE
 
 	declare -A VERBS_SKIP=(
 		[consume]=1
@@ -106,7 +106,7 @@ elif [[ $VERB == ls-verbs ]]; then
 		[schedule]=1
 	)
 	declare -A VERBS
-	for f in "$VERB_DIR"/*.sh "$(engine_verb_dir "$TYPE")"/*.sh; do
+	for f in "$VERB_DIR"/*.sh "$(engine_verb_dir "$JOB_TYPE")"/*.sh; do
 		if ! [[ -e "$f" ]]; then continue; fi
 		f="${f##*/}"
 		f="${f%.sh}"
@@ -124,10 +124,11 @@ else
 	__verb_expect_args_ge 1
 	__verb_check_job "${VERB_ARGS[0]}"
 
-	JOB="${VERB_ARGS[0]}"
-	config_get_job "$JOB" TYPE
+	JOB_NAME="${VERB_ARGS[0]}"
 
-	JOB_VERB_DIR="$(engine_verb_dir "$TYPE")"
+	config_get_job_as "$JOB_NAME" TYPE JOB_TYPE
+
+	JOB_VERB_DIR="$(engine_verb_dir "$JOB_TYPE")"
 	if [[ -e "$JOB_VERB_DIR/$VERB.sh" ]]; then
 		__verb_load_libs "$JOB_VERB_DIR" "$VERB"
 		source "$JOB_VERB_DIR/$VERB.sh"
