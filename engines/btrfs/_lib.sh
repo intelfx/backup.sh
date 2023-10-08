@@ -99,7 +99,7 @@ btrfs_remount_id5_to() {
 	local target_options
 	target_options="$(<<<"$options" sed -r -e 's|,?subvol=.*$||' -e 's|,?subvolid=[^,]*||')"
 
-	if <<<"$target_options" grep -E '(subvol|subvolid)='; then
+	if [[ "$target_options" =~ (subvol|subvolid)= ]]; then
 		err "btrfs_remount_id5_to: could not cleanup mount options for '$mountpoint': '$options'"
 		return 1
 	fi
