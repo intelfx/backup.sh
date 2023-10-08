@@ -51,7 +51,7 @@ else
 	log "no subvolumes to delete"
 fi
 
-find "$OLD_DIR" -mindepth 1 -xdev -depth -type d -empty -exec rm -vd {} \;
+find "$OLD_DIR" -xdev -depth -type d -empty -exec rm -vd {} \;
 
 log "cleaning up empty snapshot directories for Btrfs filesystem '$BTRFS_FILESYSTEM'"
 
