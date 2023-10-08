@@ -35,7 +35,7 @@ OLD_DIR="$MOUNT_DIR/old"
 mkdir -p "$OLD_DIR"
 
 SUBVOLUMES_LIST_CMD=(
-	btrfs-sub-find --find
+	"${BTRFS_SUBVOLUME_FIND[@]}"
 	"$OLD_DIR"
 )
 
