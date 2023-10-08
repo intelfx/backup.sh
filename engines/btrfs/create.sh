@@ -76,5 +76,9 @@ for s in "${SUBVOLUMES[@]}"; do
 	"${BTRFS_SUBVOLUME_SNAPSHOT[@]}" "$SUBVOLUME_DIR" "$SNAPSHOT_DIR" >&2
 done
 
-label "Snapshot id:"
-echo "$SNAPSHOT_ID"
+log "Created snapshot: $SNAPSHOT_ID"
+
+# do not annoy the user with the same ID again
+if ! stderr_is_stdout; then
+	echo "$SNAPSHOT_ID"
+fi
