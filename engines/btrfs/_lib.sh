@@ -1,5 +1,7 @@
 #!/hint/bash
 
+export PATH="$JOB_VERB_DIR/_lib/btrfs-tools:$PATH"
+
 BTRFS_SUBVOLUME_SNAPSHOT=(
 	btrfs sub snap -r
 )
