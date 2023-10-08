@@ -44,10 +44,9 @@ btrfs_setup_from_path MOUNT_DIR "$BTRFS_FILESYSTEM"
 SUBVOLUMES_LIST_CMD=(
 	"${BTRFS_SUBVOLUME_FIND_PHYSICAL[@]}"
 )
-# FIXME: build a single list command once btrfs-sub-find learns to accept multiple args
-#for s in ${BTRFS_SUBVOLUMES_INCLUDE[@]}; do
-#	SUBVOLUMES_LIST_CMD+=( "$MOUNT_DIR$s" )
-#done
+for s in ${BTRFS_SUBVOLUMES_INCLUDE[@]}; do
+	SUBVOLUMES_LIST_CMD+=( "$MOUNT_DIR$s" )
+done
 
 SUBVOLUMES_FILTER_CMD=(
 	grep -vE
@@ -59,11 +58,7 @@ done
 dbg "subvolume list cmd: ${SUBVOLUMES_LIST_CMD[*]}"
 dbg "subvolume filter cmd: ${SUBVOLUMES_FILTER_CMD[*]}"
 
-# FIXME: see above
-# "${SUBVOLUMES_LIST_CMD[@]}" \
-{ for s in "${BTRFS_SUBVOLUMES_INCLUDE[@]}"; do "${SUBVOLUMES_LIST_CMD[@]}" "$MOUNT_DIR$s"; done; } | sort -u \
-| "${SUBVOLUMES_FILTER_CMD[@]}" \
-| readarray -t SUBVOLUMES
+"${SUBVOLUMES_LIST_CMD[@]}" | "${SUBVOLUMES_FILTER_CMD[@]}" | sort -u | readarray -t SUBVOLUMES
 
 for s in "${SUBVOLUMES[@]}"; do
 	s="${s##/}"

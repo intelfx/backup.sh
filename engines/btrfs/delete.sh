@@ -39,7 +39,6 @@ fi
 btrfs_setup_signals
 btrfs_setup_from_path MOUNT_DIR "$BTRFS_FILESYSTEM"
 
-SUBVOLUMES=()
 SNAPSHOT_DIRS=()
 for id in "${SNAPSHOT_IDS[@]}"; do
 	path="$(btrfs_snapshot_path "$id")"
@@ -49,19 +48,19 @@ for id in "${SNAPSHOT_IDS[@]}"; do
 	if ! [[ -d "$dir" ]]; then
 		die "bad snapshot dir: $dir"
 	fi
-
-	SUBVOLUMES_LIST_CMD=(
-		"${BTRFS_SUBVOLUME_FIND[@]}"
-		"$dir"
-	)
-
-	"${SUBVOLUMES_LIST_CMD[@]}" | sort -r | readarray -t -O "${#SUBVOLUMES[@]}" SUBVOLUMES
 	SNAPSHOT_DIRS+=( "$dir" )
 done
 
 for s in "${SUBVOLUMES[@]}"; do
 	dbg "will delete snapshot '$s'"
 done
+
+SUBVOLUMES_LIST_CMD=(
+	"${BTRFS_SUBVOLUME_FIND[@]}"
+	"${SNAPSHOT_DIRS[@]}"
+)
+
+"${SUBVOLUMES_LIST_CMD[@]}" | sort -ur | readarray -t SUBVOLUMES
 
 if (( ${#SUBVOLUMES[@]} )); then
 	"${BTRFS_SUBVOLUME_DELETE[@]}" "${SUBVOLUMES[@]}"
