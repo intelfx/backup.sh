@@ -55,6 +55,10 @@ for s in "${BTRFS_SUBVOLUMES_EXCLUDE[@]}"; do
 	SUBVOLUMES_FILTER_CMD+=( -e "^$s(/|$)" )
 done
 
+if ! (( ${#BTRFS_SUBVOLUMES_EXCLUDE[@]} )); then
+	SUBVOLUMES_FILTER_CMD=( cat )
+fi
+
 dbg "subvolume list cmd: ${SUBVOLUMES_LIST_CMD[*]}"
 dbg "subvolume filter cmd: ${SUBVOLUMES_FILTER_CMD[*]}"
 
