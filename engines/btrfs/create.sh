@@ -41,6 +41,10 @@ log "creating a recursive snapshot of Btrfs filesystem '$BTRFS_FILESYSTEM' under
 btrfs_setup_signals
 btrfs_setup_from_path MOUNT_DIR "$BTRFS_FILESYSTEM"
 
+if [[ -e "$MOUNT_DIR/$SNAPSHOT_PATH" ]]; then
+	die "snapshot already exists: '$SNAPSHOT_PATH'"
+fi
+
 SUBVOLUMES_LIST_CMD=(
 	"${BTRFS_SUBVOLUME_FIND_PHYSICAL[@]}"
 )
