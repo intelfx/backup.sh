@@ -15,7 +15,6 @@ Common verbs:
 	ls JOB 			List backups of a job
 
 Available verbs are defined by the job.
-
 EOF
 }
 
