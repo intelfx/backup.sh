@@ -116,6 +116,11 @@ __verb_load_libs() {
 	fi
 }
 
+cleanup_add() {
+	ltrap "$@"
+}
+eval "$(globaltraps)"
+
 if [[ $VERB == ls-jobs ]]; then
 	__verb_expect_args 0
 
