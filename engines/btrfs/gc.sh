@@ -32,26 +32,26 @@ btrfs_setup_signals
 btrfs_setup_from_path MOUNT_DIR "$BTRFS_FILESYSTEM"
 
 OLD_DIR="$MOUNT_DIR/old"
-mkdir -p "$OLD_DIR"
+if [[ -e "$OLD_DIR" ]]; then
+	SUBVOLUMES_LIST_CMD=(
+		"${BTRFS_SUBVOLUME_FIND[@]}"
+		"$OLD_DIR"
+	)
 
-SUBVOLUMES_LIST_CMD=(
-	"${BTRFS_SUBVOLUME_FIND[@]}"
-	"$OLD_DIR"
-)
+	"${SUBVOLUMES_LIST_CMD[@]}" | sort -r | readarray -t SUBVOLUMES
 
-"${SUBVOLUMES_LIST_CMD[@]}" | sort -r | readarray -t SUBVOLUMES
+	for s in "${SUBVOLUMES[@]}"; do
+		dbg "will delete snapshot '$s'"
+	done
 
-for s in "${SUBVOLUMES[@]}"; do
-	dbg "will delete snapshot '$s'"
-done
+	if (( "${#SUBVOLUMES[@]}" )); then
+		"${BTRFS_SUBVOLUME_DELETE[@]}" "${SUBVOLUMES[@]}"
+	else
+		log "no subvolumes to delete"
+	fi
 
-if (( "${#SUBVOLUMES[@]}" )); then
-	"${BTRFS_SUBVOLUME_DELETE[@]}" "${SUBVOLUMES[@]}"
-else
-	log "no subvolumes to delete"
+	find "$OLD_DIR" -xdev -depth -type d -empty -delete
 fi
-
-find "$OLD_DIR" -xdev -depth -type d -empty -exec rm -vd {} \;
 
 log "cleaning up empty snapshot directories for Btrfs filesystem '$BTRFS_FILESYSTEM'"
 
