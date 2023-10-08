@@ -1,20 +1,34 @@
-#!/bin/bash -e
+#!/hint/bash
 
-. ${BASH_SOURCE%/*}/backup_lib.sh || exit
-. btrfs_lib.sh || exit
+#
+# options
+#
+
+_usage() {
+	cat <<EOF
+$_usage_common_syntax create <JOB> [SNAPSHOT-NAME]
+$_usage_common_options
+create options:
+	SNAPSHOT-NAME		Optional name of the btrfs snapshot to create
+				(if unspecified, config default is used)
+EOF
+}
+
+__verb_expect_args_one_of 1 2
+SNAPSHOT_ID=( "${VERB_ARGS[@]:1}" )
 
 
 #
 # config
 #
 
-(( $# >= 1 )) || die "bad arguments ($*): expecting <config>"
-CONFIG="$1"
-shift 1
+config_get_job "$JOB_NAME" BTRFS_FILESYSTEM
+config_get_job "$JOB_NAME" BTRFS_SUBVOLUMES_INCLUDE BTRFS_SUBVOLUMES_EXCLUDE
+config_get_job_f "$JOB_NAME" btrfs_snapshot_path btrfs_snapshot_id
 
-load_config "$CONFIG" "$@"
-
-SNAPSHOT_ID="$(btrfs_snapshot_id)"
+if ! [[ ${SNAPSHOT_ID+set} ]]; then
+	SNAPSHOT_ID="$(btrfs_snapshot_id)"
+fi
 SNAPSHOT_PATH="$(btrfs_snapshot_path "$SNAPSHOT_ID")"
 
 
