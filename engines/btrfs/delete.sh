@@ -1,36 +1,43 @@
-#!/bin/bash -e
+#!/hint/bash
 
-. ${BASH_SOURCE%/*}/backup_lib.sh || exit
-. btrfs_lib.sh || exit
+#
+# options
+#
+
+_usage() {
+	cat <<EOF
+$_usage_common_syntax delete <JOB> <SNAPSHOT...>
+$_usage_common_options
+delete options:
+	SNAPSHOT...		Name(s) of the btrfs snapshot(s) to delete
+EOF
+}
+
+__verb_expect_args_ge 2
+SNAPSHOT_IDS=( "${VERB_ARGS[@]:1}" )
 
 
 #
 # config
 #
 
-(( $# >= 2 )) || die "bad arguments ($*): expecting <config> <snapshot id...>"
-CONFIG="$1"
-shift 1
-SNAPSHOT_IDS=( "$@" )
-shift "${#SNAPSHOT_IDS[@]}"
-
-load_config "$CONFIG"
+config_get_job "$JOB_NAME" BTRFS_FILESYSTEM
+config_get_job_f "$JOB_NAME" btrfs_snapshot_path
 
 
 #
 # signals
 #
 
-
 sigterm() {
 	log "SIGTERM/SIGINT received, ignoring"
 }
 trap sigterm TERM INT
 
+
 #
 # main
 #
-
 
 log "deleting ${#SNAPSHOT_IDS[@]} snapshot tree(s) from Btrfs filesystem '$BTRFS_FILESYSTEM'"
 
@@ -45,6 +52,8 @@ cleanup_add "rm -df '$MOUNT_DIR'"
 btrfs_remount_id5_to "$BTRFS_FILESYSTEM" "$MOUNT_DIR"
 cleanup_add "umount -l '$MOUNT_DIR'"
 
+SUBVOLUMES=()
+SNAPSHOT_DIRS=()
 for id in "${SNAPSHOT_IDS[@]}"; do
 	path="$(btrfs_snapshot_path "$id")"
 	log "deleting snapshot tree '$path'"
