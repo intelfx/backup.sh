@@ -1,6 +1,7 @@
 #!/hint/bash
 
 export BSH_ROOT_DIR="$(realpath -qm --strip "$BASH_SOURCE/../../..")"
+export PATH="$BSH_ROOT_DIR/lib:$PATH"
 
 LIBSH_LOG_PREFIX="$(realpath -qe --strip --relative-to="$BSH_ROOT_DIR" "${BASH_SOURCE[2]}")"
 
