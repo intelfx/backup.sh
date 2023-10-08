@@ -36,6 +36,7 @@ config_setup "${ARG_CONFIG:-$ARG_CONFIG_DEFAULT}"
 VERB="$1"
 VERB_ARGS=( "${@:2}" )
 LIBSH_LOG_PREFIX+=": $VERB"
+set --
 
 __verb_expect_args() {
 	if ! (( ${#VERB_ARGS[@]} == $1 )); then
