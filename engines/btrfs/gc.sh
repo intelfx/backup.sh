@@ -58,4 +58,9 @@ log "cleaning up empty snapshot directories for Btrfs filesystem '$BTRFS_FILESYS
 SNAPSHOT_GLOB="'$MOUNT_DIR/$(btrfs_snapshot_path "'*'")'"
 eval "printf '%s\n' $SNAPSHOT_GLOB" | readarray -t SNAPSHOT_DIRS
 
-find "${SNAPSHOT_DIRS[@]}" -xdev -depth -type d -empty -exec rm -vd {} \;
+# HACK: find -xdev will still match snapshot roots, so snapshots of
+#       empty subvolumes will get caught in the crossfire.
+#       Thus, explicitly unmatch "snapshot" directories. The drawback
+#       is that an empty dir after a subvolume whose basename was "snapshot"
+#       will also be ignored.
+find "${SNAPSHOT_DIRS[@]}" -xdev -depth -type d -not -name snapshot -empty -exec rm -vd {} \;
