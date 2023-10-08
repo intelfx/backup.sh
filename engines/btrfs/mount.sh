@@ -1,20 +1,30 @@
-#!/bin/bash -e
+#!/hint/bash
 
-. ${BASH_SOURCE%/*}/backup_lib.sh || exit
-. btrfs_lib.sh || exit
+#
+# options
+#
+
+_usage() {
+	cat <<EOF
+$_usage_common_syntax mount <JOB> <SNAPSHOT> <TARGET-DIR>
+$_usage_common_options
+mount options:
+	SNAPSHOT		Name of the btrfs snapshot to mount
+	TARGET-DIR		Directory to mount the root of the hierarchy at
+EOF
+}
+
+__verb_expect_args 3
+SNAPSHOT_ID="${VERB_ARGS[1]}"
+TARGET_DIR="${VERB_ARGS[2]}"
 
 
 #
 # config
 #
 
-(( $# >= 3 )) || die "bad arguments ($*): expecting <config> <snapshot id> <mountpoint>"
-CONFIG="$1"
-SNAPSHOT_ID="$2"
-TARGET_DIR="$3"
-shift 3
-
-load_config "$CONFIG" "$@"
+config_get_job "$JOB_NAME" BTRFS_FILESYSTEM
+config_get_job_f "$JOB_NAME" btrfs_snapshot_path
 
 SNAPSHOT_PATH="$(btrfs_snapshot_path "$SNAPSHOT_ID")"
 
