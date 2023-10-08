@@ -96,6 +96,7 @@ btrfs_remount_id5_to() {
 	# subvol can contain arbitrary characters including comma
 	# thankfully, it is typically the last mount option, so we simply remove everything after subvol=
 	# (FIXME: ensure btrfs actually guarantee that subvol= is emitted last)
+	local target_options
 	target_options="$(<<<"$options" sed -r -e 's|,?subvol=.*$||' -e 's|,?subvolid=[^,]*||')"
 
 	if <<<"$target_options" grep -E '(subvol|subvolid)='; then
