@@ -37,5 +37,4 @@ SNAPSHOT_GLOB="'$MOUNT_DIR/$(btrfs_snapshot_path "'*'")'"
 SNAPSHOT_ID_REGEX="^$MOUNT_DIR/$(btrfs_snapshot_path "([^/]+)")$"
 print_array "${SNAPSHOT_PATHS[@]}" | sed -nr "s|$SNAPSHOT_ID_REGEX|\1|p" | readarray -t SNAPSHOT_IDS
 
-label "Btrfs snapshots:"
 print_array "${SNAPSHOT_IDS[@]}"
