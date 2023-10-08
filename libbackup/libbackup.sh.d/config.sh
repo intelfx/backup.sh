@@ -60,6 +60,11 @@ __config_declare_mangle_strip() {
 	sed -r "s|^(declare) ((-[a-zA-Z0-9-]+ )+)${prefix}_(.+)$|\1 -g \2\4|"
 }
 
+__config_declare_mangle_rename() {
+	local src="$1" dest="$2"
+	sed -r "s|^(declare) ((-[a-zA-Z0-9-]+ )+)${src}=(.+)$|\1 -g \2${dest}=\4|"
+}
+
 __config_declare_mangle_strip_f() {
 	local prefix="$1"
 	sed -r "s|^${prefix}_(.+) \(\) *$|\1 ()|"
@@ -104,6 +109,30 @@ config_get_job() {
 		err "config_get_job: unimplemented: getting all variables"
 		return 1
 	fi
+}
+
+config_get_job_as() {
+	local __job="$1" __pairs=( "${@:2}" )
+
+	local __vars_data
+	__vars_data="$(
+		set -eo pipefail
+		__config_load_job "$__job"
+		# TODO: support mixing and matching variables
+		#       from the global config (prefixed) and
+		#       from the job config (non-prefixed)
+		while (( ${#__pairs[@]} )); do
+			__var="${__pairs[0]}"
+			__rename="${__pairs[1]}"
+			__pairs=( "${__pairs[@]:2}" )
+			if [[ $__config_load_job__has_file ]]; then
+				declare -p "${__var}" | __config_declare_mangle_rename "${__var}" "${__rename}"
+			else
+				declare -p "${__job}_${__var}" | __config_declare_mangle_rename "${__job}_${__var}" "${__rename}"
+			fi
+		done
+	)"
+	eval "$__vars_data"
 }
 
 config_get_job_f() {
