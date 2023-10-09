@@ -2,10 +2,12 @@
 
 JOBS=(
 	job1
+	job2
 )
 
 #declare -A JOBS_FILES=(
 #	[job1]=Backupfile.job1
+#	[job2]=Backupfile.job2
 #)
 
 job1_TYPE=btrfs
@@ -29,3 +31,36 @@ job1_BTRFS_SUBVOLUMES_EXCLUDE=(
 	/arch/var/log/journal
 	/arch/var/tmp
 )
+
+job2_TYPE=borg
+job2_SOURCE_JOB_NAME=job1
+job2_borg_snapshot_id() {
+	echo "$NOW"
+}
+job2_borg_snapshot_tag() {
+	echo "$(hostname)-$1"
+}
+job2_BORG_REPO="ssh://user@hostname/path/to/repo"
+job2_borg_exports() {
+	# cfg/borgserver/ has to exist and contain the following secrets:
+	# * pass            passphrase file for Borg
+	# * id_*, id_*.pub  SSH keys for access to remote Borg
+	# * known_hosts     OpenSSH known_hosts file (will be created)
+	local borg_dir="$(config_file borgserver)"
+
+	# $BORG_CREATE, $BORG_LIST, $BORG_DELETE
+	# can be overridden or extended in this context
+	BORG_CREATE+=(
+		--patterns-from "$(config_file borgpatterns)"
+	)
+
+	# recommended to set explicitly
+	export BORG_BASE_DIR=/root
+	# recommended to set explicitly
+	export BORG_RELOCATED_REPO_ACCESS_IS_OK=yes
+	# resolves to cfg/borgserver/pass
+	export BORG_PASSCOMMAND="cat '$borg_dir/pass'"
+	# creates an (escaped) unattended ssh cmdline
+	# using keys and known_hosts under cfg/borgserver
+	export BORG_RSH="$(make_ssh_cmd "$borg_dir")"
+}
