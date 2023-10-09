@@ -13,7 +13,7 @@ config_setup() {
 	elif [[ -f "$arg" ]]; then
 		configfile="$arg"
 	elif [[ -z "$arg" ]]; then
-		err "configuration path not specifiee"
+		err "configuration path not specified"
 		return 1
 	else
 		err "configuration path does not exist: $arg"
