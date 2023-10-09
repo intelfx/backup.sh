@@ -124,6 +124,37 @@ config_get_job() {
 	fi
 }
 
+config_get_job_optional() {
+	local __job="$1" __vars=( "${@:2}" ) __rc
+
+	if (( ${#__vars[@]} )); then
+		local __vars_data
+		__vars_data="$(
+			set -eo pipefail
+			__config_load_job "$__job"
+			# TODO: support mixing and matching variables
+			#       from the global config (prefixed) and
+			#       from the job config (non-prefixed)
+			if [[ $__config_load_job__has_file ]]; then
+				for __var in "${__vars[@]}"; do
+					if ! [[ ${!__var+set} ]]; then exit 1; fi
+				done
+				declare -p "${__vars[@]}" | __config_declare_mangle
+			else
+				for __var in "${__vars[@]}"; do
+					__var="${__job}_${__var}"
+					if ! [[ ${!__var+set} ]]; then exit 1; fi
+				done
+				declare -p "${__vars[@]/#/${__job}_}" | __config_declare_mangle_strip "$__job"
+			fi
+		)" || return
+		eval "$__vars_data"
+	else
+		err "config_get_job: unimplemented: getting all variables"
+		return 1
+	fi
+}
+
 config_get_job_as() {
 	local __job="$1" __pairs=( "${@:2}" )
 
