@@ -7,12 +7,7 @@ pkgdesc="A (growing) toolkit to manage system snapshots and backups"
 arch=('any')
 url="https://github.com/intelfx/backup.sh"
 license=('GPL3')
-depends=(
-    'bash'
-    'borg'
-    'btrfs-progs'
-    'python-btrfs'
-)
+depends=('bash')
 makedepends=('git')
 source=("git+https://github.com/intelfx/backup.sh.git#branch=master")
 sha256sums=('SKIP')
@@ -29,6 +24,11 @@ prepare() {
 }
 
 package() {
+    depends+=(
+        'borg'
+        'btrfs-progs'
+        'python-btrfs'
+    )
     cd backup.sh
 
     install -dm755 \
