@@ -11,6 +11,15 @@ JOBS=(
 #)
 
 job1_TYPE=btrfs
+# TODO: implement and utilize "consumed" rules to fast-track removal of snapshots
+#       that were pushed to longterm storage, while retaining those snapshots
+#       that were not (for some reason).
+job1_PRUNE_RULES=(
+	"keep_minutely every=15 count=1 minutes=$(( 24*60 ))" # 24 hours
+	"keep_hourly count=1 hours=$((24*2))"
+	"keep_daily count=1 days=7"
+	delete=1
+)
 job1_btrfs_snapshot_id() {
 	echo "$NOW"
 }
@@ -34,6 +43,14 @@ job1_BTRFS_SUBVOLUMES_EXCLUDE=(
 
 job2_TYPE=borg
 job2_SOURCE_JOB_NAME=job1
+job2_PRUNE_RULES=(
+	#"keep_minutely every=15 count=1 minutes=$(( 24*60 ))" # 24 hours
+	"keep_hourly count=1 hours=$((24*7))"
+	"keep_daily count=1 days=$((30*12*10))"
+	"keep_monthly count=1 months=$((12*10))"
+	"keep_yearly count=1 years=100"
+	delete=1
+)
 job2_borg_snapshot_id() {
 	echo "$NOW"
 }
