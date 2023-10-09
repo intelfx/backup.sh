@@ -1,13 +1,18 @@
-#!/bin/bash -e
-
-. ${BASH_SOURCE%/*}/backup_lib.sh || exit
-
+#!/hint/bash
 
 #
-# config
+# options
 #
 
-TARGET_DIR="$1"
+_usage() {
+	cat <<EOF
+$_usage_common_syntax unmount <TARGET-DIR>
+$_usage_common_options
+EOF
+}
+
+__verb_expect_args 1
+TARGET_DIR="${VERB_ARGS[0]}"
 
 
 #
