@@ -1,20 +1,29 @@
-#!/bin/bash -e
+#!/hint/bash
 
-. ${BASH_SOURCE%/*}/backup_lib.sh || exit
-. borg_lib.sh || exit
+#
+# options
+#
+
+_usage() {
+	cat <<EOF
+$_usage_common_syntax delete <JOB> <ARCHIVE...>
+$_usage_common_options
+delete options:
+	ARCHIVE...		Name(s) of the Borg archive(s) to delete
+EOF
+}
+
+__verb_expect_args_ge 2
+SNAPSHOT_IDS=( "${VERB_ARGS[@]:1}" )
 
 
 #
 # config
 #
 
-(( $# >= 1 )) || die "bad arguments ($*): expecting <config> <snapshot id>"
-CONFIG="$1"
-shift 1
-SNAPSHOT_IDS=( "$@" )
-shift "${#SNAPSHOT_IDS[@]}"
-
-load_config "$CONFIG"
+config_get_job "$JOB_NAME" BORG_REPO
+config_get_job_f "$JOB_NAME" borg_snapshot_tag borg_exports
+borg_exports
 
 
 #
