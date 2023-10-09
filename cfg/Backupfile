@@ -37,8 +37,8 @@ job1_BTRFS_SUBVOLUMES_INCLUDE=(
 )
 # NOTE: POSIX EREs
 job1_BTRFS_SUBVOLUMES_EXCLUDE=(
-	/arch/home/[^/]+/\\.local/share/containers
-	/arch/home/[^/]+/tmp
+	/arch/home/\[^/]+/\\.local/share/containers
+	/arch/home/\[^/]+/tmp
 	/arch/var/lib/containers
 	/arch/var/lib/machines
 	/arch/var/lib/libvirt
