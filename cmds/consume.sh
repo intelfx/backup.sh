@@ -1,30 +1,42 @@
-#!/bin/bash -e
+#!/hint/bash
 
-. ${BASH_SOURCE%/*}/backup_lib.sh || exit
-. ${BASH_SOURCE%/*}/backup_lib_prune.sh || exit
+__verb_load_libs "$VERB_DIR" prune
+
+#
+# options
+#
+
+_usage() {
+	cat <<EOF
+$_usage_common_syntax consume <JOB>
+$_usage_common_options
+EOF
+}
+
+__verb_expect_args 1
+# rename $JOB_NAME for consistency
+TARGET_JOB_NAME="$JOB_NAME"
+
 
 #
 # config
 #
 
-(( $# >= 1 )) || die "bad arguments ($*): expecting <destination config>"
-CONFIG="$1"
-shift 1
-
-DESTINATION=( "$CONFIG" "$@" )
-load_config "$CONFIG" "$@"
-#SOURCE= is defined in the loaded config
+config_get_job "$TARGET_JOB_NAME" SOURCE_JOB_NAME PRUNE_RULES SCHEDULE_RULES
+# TODO: support optional variables for config_get_*
+PRODUCER_PRUNE_EARLY=
+PRODUCER_PRUNE_LATE=
 
 #
 # main
 #
 
-log "transferring snapshots according to $CONFIG"
+log "consuming backups from $SOURCE_JOB_NAME to $TARGET_JOB_NAME"
 
 # early prune
 if (( PRODUCER_PRUNE_EARLY )); then
 	log "pruning obsolete source snapshots before transfer"
-	invoke prune "${SOURCE[@]}"
+	invoke prune "$SOURCE_JOB_NAME"
 fi
 
 #
@@ -114,8 +126,8 @@ consume_flag() {
 #
 
 declare -a SOURCE_IDS DESTINATION_IDS
-invoke list "${SOURCE[@]}" | sort | readarray -t SOURCE_IDS
-invoke list "${DESTINATION[@]}" | sort | readarray -t DESTINATION_IDS
+invoke list "$SOURCE_JOB_NAME" | sort | readarray -t SOURCE_IDS
+invoke list "$TARGET_JOB_NAME" | sort | readarray -t DESTINATION_IDS
 
 consume_flag "S" "${SOURCE_IDS[@]}"
 consume_flag "D" "${DESTINATION_IDS[@]}"
@@ -236,7 +248,7 @@ prune_get_backups BACKUPS | readarray -t CANDIDATE_IDS
 log "creating ${#CANDIDATE_IDS[@]} snapshots"
 rc=0
 for id in "${CANDIDATE_IDS[@]}"; do
-	if invoke create "${DESTINATION[@]}" "$id"; then
+	if invoke create "$TARGET_JOB_NAME" "$id"; then
 		: # we cannot invert the condition above because we won't catch its return code
 	else
 		rc2=$?
@@ -253,5 +265,5 @@ fi
 # if we have transferred everything we wanted, perform a final prune
 if (( PRODUCER_PRUNE_LATE )); then
 	log "pruning obsolete source snapshots after transfer"
-	invoke prune "${SOURCE[@]}"
+	invoke prune "$SOURCE_JOB_NAME"
 fi
