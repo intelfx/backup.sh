@@ -19,6 +19,5 @@ function make_ssh_cmd() {
 		fi
 	done
 
-	# TODO: escape properly
-	echo "${ssh[*]}"
+	echo "${ssh[@]@Q}"
 }
