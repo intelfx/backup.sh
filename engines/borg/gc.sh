@@ -42,7 +42,7 @@ SNAPSHOT_TAG_GLOB="$(borg_snapshot_tag "*").*"
 | readarray -d '' -t SNAPSHOT_TAGS
 
 for s in "${SNAPSHOT_TAGS[@]}"; do
-	dbg "will delete archive '$s'"
+	log "will delete archive '$s'"
 done
 
 if (( ${#SNAPSHOT_TAGS[@]} )); then
