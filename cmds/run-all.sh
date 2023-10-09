@@ -183,8 +183,22 @@ for j in "${RUN_JOBS[@]}"; do
 	run_job "$j"
 done
 
+if (( ${#SKIPPED_JOBS[@]} )); then
+	warn "skipped "${#SKIPPED_JOBS} jobs:""
+	for j in "${RUN_JOBS[@]}"; do
+		if [[ ${SKIPPED_JOBS[$j]+set} ]]; then
+			say " * $j"
+		fi
+	done
+fi
+
 if (( ${#FAILED_JOBS[@]} )); then
-	err "failed ${#FAILED_JOBS[@]} jobs"
+	err "failed ${#FAILED_JOBS[@]} jobs:"
+	for j in "${RUN_JOBS[@]}"; do
+		if [[ ${FAILED_JOBS[$j]+set} ]]; then
+			say " * $j"
+		fi
+	done
 	exit 1
 fi
 
