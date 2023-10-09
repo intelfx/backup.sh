@@ -63,7 +63,35 @@ jqs() {
 	<<<"$input" jq "$@"
 }
 
-check_internet() {
+check_internet_connected() {
+	local state_json
+
+	if ! state_json="$(busctl get-property --json=short org.freedesktop.NetworkManager /org/freedesktop/NetworkManager org.freedesktop.NetworkManager State)"; then
+		err "check_internet: failed to query NetworkManager"
+		return 0  # assume connected
+	fi
+
+	if ! [[ "$(jqs "$state_json" -r '.type')" == u ]]; then
+		err "check_internet: bad reply (unexpected type): '$state_json'"
+		return 0  # assume not metered
+	fi
+	case "$(jqs "$state_json" -r '.data')" in
+	0|50|60|70)  # NM_STATE_UNKNOWN, NM_STATE_CONNECTED_{LOCAL,SITE,GLOBAL}
+		log "check_internet: json=$state_json result=yes (connected)"
+		return 0  # connected
+		;;
+	10|20|30|40)  # NM_STATE_ASLEEP, NM_STATE_DISCONNECT{ED,ING}, ...
+		log "check_internet: json=$state_json result=no (not connected)"
+		return 1  # not connected
+		;;
+	*)
+		err "check_internet: bad reply (unexpected data): $state_json"
+		return 0  # assume connected
+		;;
+	esac
+}
+
+check_internet_metered() {
 	local metered_json
 
 	if ! metered_json="$(busctl get-property --json=short org.freedesktop.NetworkManager /org/freedesktop/NetworkManager org.freedesktop.NetworkManager Metered)"; then
@@ -88,6 +116,10 @@ check_internet() {
 		return 0  # assume not metered
 		;;
 	esac
+}
+
+check_internet() {
+	check_internet_connected && check_internet_metered
 }
 
 has_condition() {
