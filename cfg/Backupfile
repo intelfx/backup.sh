@@ -25,18 +25,18 @@ job1_SCHEDULE_RULES=(
 	"keep_minutely every=15 count=1"
 	delete=1
 )
-job1_btrfs_snapshot_id() {
+job1_snapshot_id() {
 	echo "$NOW"
 }
-job1_btrfs_snapshot_path() {
+job1_snapshot_path() {
 	echo "snapshots/$1"
 }
-job1_BTRFS_FILESYSTEM="/"
-job1_BTRFS_SUBVOLUMES_INCLUDE=(
+job1_FILESYSTEM="/"
+job1_SUBVOLUMES_INCLUDE=(
 	/arch
 )
 # NOTE: POSIX EREs
-job1_BTRFS_SUBVOLUMES_EXCLUDE=(
+job1_SUBVOLUMES_EXCLUDE=(
 	/arch/home/\[^/]+/\\.local/share/containers
 	/arch/home/\[^/]+/tmp
 	/arch/var/lib/containers
@@ -47,7 +47,7 @@ job1_BTRFS_SUBVOLUMES_EXCLUDE=(
 )
 
 job2_TYPE=borg
-job2_SOURCE_JOB_NAME=job1
+job2_SOURCE=job1
 job2_CONDITIONS=(power internet)
 job2_PRUNE_RULES=(
 	#"keep_minutely every=15 count=1 minutes=$(( 24*60 ))" # 24 hours
@@ -62,14 +62,14 @@ job2_SCHEDULE_RULES=(
 	#"keep_daily count=1"
 	delete=1
 )
-job2_borg_snapshot_id() {
+job2_snapshot_id() {
 	echo "$NOW"
 }
-job2_borg_snapshot_tag() {
+job2_snapshot_tag() {
 	echo "$(hostname)-$1"
 }
-job2_BORG_REPO="ssh://user@hostname/path/to/repo"
-job2_borg_exports() {
+job2_REPO="ssh://user@hostname/path/to/repo"
+job2_exports() {
 	# cfg/borgserver/ has to exist and contain the following secrets:
 	# * pass            passphrase file for Borg
 	# * id_*, id_*.pub  SSH keys for access to remote Borg
