@@ -74,7 +74,7 @@ job2_exports() {
 	# * pass            passphrase file for Borg
 	# * id_*, id_*.pub  SSH keys for access to remote Borg
 	# * known_hosts     OpenSSH known_hosts file (will be created)
-	local borg_dir="$(config_file borgserver)"
+	local borg_dir="$(config_dir borgserver)"
 
 	# $BORG_CREATE, $BORG_LIST, $BORG_DELETE
 	# can be overridden or extended in this context
