@@ -42,6 +42,11 @@ VERB_ARGS=( "${@:2}" )
 LIBSH_LOG_PREFIX+=": $VERB"
 set --
 
+cleanup_add() {
+	ltrap "$@"
+}
+eval "$(globaltraps)"
+
 __verb_expect_args() {
 	if ! (( ${#VERB_ARGS[@]} == $1 )); then
 		usage "expected $1 argument(s)"
@@ -115,11 +120,6 @@ __verb_load_libs() {
 		___verb_load_lib_dir "$dir/_${verb}_lib"
 	fi
 }
-
-cleanup_add() {
-	ltrap "$@"
-}
-eval "$(globaltraps)"
 
 if [[ $VERB == ls-jobs ]]; then
 	__verb_expect_args 0
