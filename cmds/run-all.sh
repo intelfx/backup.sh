@@ -109,6 +109,7 @@ log "running ${#RUN_JOBS[@]} backup jobs"
 
 declare -A SKIPPED_JOBS
 declare -A FAILED_JOBS
+declare -a PRUNE_JOBS
 
 run_job() {
 	local job="$1" verb
@@ -176,11 +177,32 @@ run_job() {
 		rc=$?
 		warn "failed to '$verb' job '$job'"
 		FAILED_JOBS[$job]=1
+		return
+	fi
+
+	if [[ ${has_prune+set} ]]; then
+		PRUNE_JOBS+=( "$job" )
+	fi
+}
+
+prune_job() {
+	local job="$1" verb="prune"
+
+	if invoke "$verb" "$job"; then
+		:
+	else
+		rc=$?
+		warn "failed to '$verb' job '$job'"
+		FAILED_JOBS[$job]=1
 	fi
 }
 
 for j in "${RUN_JOBS[@]}"; do
 	run_job "$j"
+done
+
+for j in "${PRUNE_JOBS[@]}"; do
+	prune_job "$j"
 done
 
 if (( ${#SKIPPED_JOBS[@]} )); then
