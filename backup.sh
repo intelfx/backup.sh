@@ -162,6 +162,7 @@ elif [[ -e "$VERB_DIR/$VERB.sh" ]]; then
 		__verb_check_job "${VERB_ARGS[0]}"
 
 		JOB_NAME="${VERB_ARGS[0]}"
+		LIBSH_LOG_PREFIX+="($JOB_NAME)"
 	fi
 
 	__verb_load_libs "$VERB_DIR" "$VERB"
@@ -172,6 +173,7 @@ else
 	__verb_check_job "${VERB_ARGS[0]}"
 
 	JOB_NAME="${VERB_ARGS[0]}"
+	LIBSH_LOG_PREFIX+="($JOB_NAME)"
 
 	config_get_job_as "$JOB_NAME" TYPE JOB_TYPE
 
