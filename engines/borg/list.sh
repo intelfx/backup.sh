@@ -44,5 +44,4 @@ print_array "${SNAPSHOT_TAGS[@]}" \
 | sed -nr "s|$SNAPSHOT_ID_REGEX|\\1|p" \
 | readarray -t SNAPSHOT_IDS
 
-label "Borg archives:"
 print_array "${SNAPSHOT_IDS[@]}"
