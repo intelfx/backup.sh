@@ -25,8 +25,8 @@ config_setup() {
 	export BSH_CONFIG_DIR="$(dirname "$configfile")"
 }
 
-__config_file_name() {
-	local __file="$1"
+__config_canonicalize() {
+	local __file="$1" __path
 
 	if [[ $__file == /* ]]; then
 		die "absolute configuration paths not allowed: $__file"
@@ -35,6 +35,15 @@ __config_file_name() {
 	fi
 
 	(cd "$BSH_CONFIG_DIR"; realpath -q --strip -- "$__file")
+}
+
+__config_file_name() {
+	local __file="$1" __path
+	__path="$(__config_canonicalize "$__file")"
+	if ! [[ -f "$__path" ]]; then
+		die "configuration file does not exist: $__file"
+	fi
+	echo "$__path"
 }
 
 __config_load_file() {
