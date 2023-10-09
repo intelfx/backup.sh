@@ -48,6 +48,7 @@ job1_BTRFS_SUBVOLUMES_EXCLUDE=(
 
 job2_TYPE=borg
 job2_SOURCE_JOB_NAME=job1
+job2_CONDITIONS=(power internet)
 job2_PRUNE_RULES=(
 	#"keep_minutely every=15 count=1 minutes=$(( 24*60 ))" # 24 hours
 	"keep_hourly count=1 hours=$((24*7))"
