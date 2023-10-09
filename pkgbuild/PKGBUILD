@@ -1,0 +1,61 @@
+# Maintainer: Ivan Shapovalov <intelfx@intelfx.name>
+
+pkgname=backupsh
+pkgver=0.1.0
+pkgrel=1
+pkgdesc="A (growing) toolkit to manage system snapshots and backups"
+arch=('any')
+url="https://github.com/intelfx/backup.sh"
+license=('GPL3')
+depends=(
+    'bash'
+    'borg'
+    'btrfs-progs'
+    'python-btrfs'
+)
+makedepends=('git')
+source=("git+https://github.com/intelfx/backup.sh.git#branch=master")
+sha256sums=('SKIP')
+backup=("etc/backup.sh/Backupfile")
+
+pkgver() {
+    cd backup.sh
+    git describe --tags | sed 's/^v//;s/[^-]*-g/r&/;s/-/./g'
+}
+
+prepare() {
+    cd backup.sh
+    git submodule update --init --recursive
+}
+
+package() {
+    cd backup.sh
+
+    install -dm755 \
+        "$pkgdir/etc/backup.sh" \
+        "$pkgdir/usr/bin" \
+        "$pkgdir/usr/share/backup.sh" \
+        "$pkgdir/usr/share/doc/backup.sh"
+
+    cp -r \
+        cfg \
+        -T "$pkgdir/etc/backup.sh"
+
+    cp -r \
+        cmds engines lib libbackup backup.sh \
+        -t "$pkgdir/usr/share/backup.sh"
+
+    cp -r \
+        cfg \
+        -T "$pkgdir/usr/share/doc/backup.sh"
+
+    ln -rs "$pkgdir/usr/share/backup.sh/backup.sh" \
+        "$pkgdir/usr/bin/bsh"
+
+    find "$pkgdir/usr/share/backup.sh" -name .git -exec rm -rf {} \;
+
+    sed -r \
+        -e 's|^(ARG_CONFIG_DEFAULT)=.*|\1="/etc/backup.sh"|' \
+        -e 's|^(ARG_ROOTDIR)=.*|\1="/usr/share/backup.sh"|' \
+        -i "$pkgdir/usr/share/backup.sh/backup.sh"
+}
