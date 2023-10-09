@@ -22,9 +22,12 @@ SNAPSHOT_ID=( "${VERB_ARGS[@]:1}" )
 # config
 #
 
-config_get_job "$JOB_NAME" BTRFS_FILESYSTEM
-config_get_job "$JOB_NAME" BTRFS_SUBVOLUMES_INCLUDE BTRFS_SUBVOLUMES_EXCLUDE
-config_get_job_f "$JOB_NAME" btrfs_snapshot_path btrfs_snapshot_id
+config_get_job "$JOB_NAME" \
+	--rename FILESYSTEM BTRFS_FILESYSTEM \
+	--rename SUBVOLUMES_INCLUDE BTRFS_SUBVOLUMES_INCLUDE \
+	--rename SUBVOLUMES_EXCLUDE BTRFS_SUBVOLUMES_EXCLUDE \
+	--rename --function snapshot_id btrfs_snapshot_id \
+	--rename --function snapshot_path btrfs_snapshot_path \
 
 if ! [[ ${SNAPSHOT_ID+set} ]]; then
 	SNAPSHOT_ID="$(btrfs_snapshot_id)"

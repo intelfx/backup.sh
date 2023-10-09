@@ -22,8 +22,13 @@ SNAPSHOT_ID=( "${VERB_ARGS[@]:1}" )
 # config
 #
 
-config_get_job "$JOB_NAME" SOURCE_JOB_NAME BORG_REPO
-config_get_job_f "$JOB_NAME" borg_snapshot_id borg_snapshot_tag borg_exports
+config_get_job "$JOB_NAME" \
+	--rename SOURCE SOURCE_JOB_NAME \
+	--rename REPO BORG_REPO \
+	--rename --function snapshot_id borg_snapshot_id \
+	--rename --function snapshot_tag borg_snapshot_tag \
+	--rename --function exports borg_exports \
+
 BORG_MOUNT_DIR="/tmp/borg"
 borg_exports
 

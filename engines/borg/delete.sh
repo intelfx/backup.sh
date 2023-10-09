@@ -21,8 +21,11 @@ SNAPSHOT_IDS=( "${VERB_ARGS[@]:1}" )
 # config
 #
 
-config_get_job "$JOB_NAME" BORG_REPO
-config_get_job_f "$JOB_NAME" borg_snapshot_tag borg_exports
+config_get_job "$JOB_NAME" \
+	--rename REPO BORG_REPO \
+	--rename --function snapshot_tag borg_snapshot_tag \
+	--rename --function exports borg_exports \
+
 borg_exports
 
 

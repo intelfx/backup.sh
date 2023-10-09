@@ -18,8 +18,9 @@ __verb_expect_args 1
 # config
 #
 
-config_get_job "$JOB_NAME" BTRFS_FILESYSTEM
-config_get_job_f "$JOB_NAME" btrfs_snapshot_path
+config_get_job "$JOB_NAME" \
+	--rename FILESYSTEM BTRFS_FILESYSTEM \
+	--rename --function snapshot_path btrfs_snapshot_path \
 
 
 #

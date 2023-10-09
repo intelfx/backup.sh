@@ -139,7 +139,8 @@ elif [[ $VERB == ls-verbs ]]; then
 	__verb_check_job "${VERB_ARGS[0]}"
 
 	JOB_NAME="${VERB_ARGS[0]}"
-	config_get_job_as "$JOB_NAME" TYPE JOB_TYPE
+	config_get_job "$JOB_NAME" \
+		--rename TYPE JOB_TYPE
 
 	declare -A VERBS_SKIP=(
 		[consume]=1
@@ -182,7 +183,8 @@ else
 	JOB_NAME="${VERB_ARGS[0]}"
 	LIBSH_LOG_PREFIX+="($JOB_NAME)"
 
-	config_get_job_as "$JOB_NAME" TYPE JOB_TYPE
+	config_get_job "$JOB_NAME" \
+		--rename TYPE JOB_TYPE
 
 	JOB_VERB_DIR="$(engine_verb_dir "$JOB_TYPE")"
 	if [[ -e "$JOB_VERB_DIR/$VERB.sh" ]]; then
