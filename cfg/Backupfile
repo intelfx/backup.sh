@@ -1,0 +1,31 @@
+#!/hint/bash
+
+JOBS=(
+	job1
+)
+
+#declare -A JOBS_FILES=(
+#	[job1]=Backupfile.job1
+#)
+
+job1_TYPE=btrfs
+job1_btrfs_snapshot_id() {
+	echo "$NOW"
+}
+job1_btrfs_snapshot_path() {
+	echo "snapshots/$1"
+}
+job1_BTRFS_FILESYSTEM="/"
+job1_BTRFS_SUBVOLUMES_INCLUDE=(
+	/arch
+)
+# NOTE: POSIX EREs
+job1_BTRFS_SUBVOLUMES_EXCLUDE=(
+	/arch/home/[^/]+/\\.local/share/containers
+	/arch/home/[^/]+/tmp
+	/arch/var/lib/containers
+	/arch/var/lib/machines
+	/arch/var/lib/libvirt
+	/arch/var/log/journal
+	/arch/var/tmp
+)
