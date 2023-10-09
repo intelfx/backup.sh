@@ -1,28 +1,34 @@
-#!/bin/bash -e
+#!/hint/bash
 
-. ${BASH_SOURCE%/*}/backup_lib.sh || exit
-. ${BASH_SOURCE%/*}/backup_lib_prune.sh || exit
+#
+# options
+#
+
+_usage() {
+	cat <<EOF
+$_usage_common_syntax prune <JOB>
+$_usage_common_options
+EOF
+}
+
+__verb_expect_args 1
 
 
 #
 # config
 #
 
-(( $# >= 1 )) || die "bad arguments ($*): expecting <config>"
-CONFIG="$1"
-shift 1
-
-load_config "$CONFIG" "$@"
+config_get_job "$JOB_NAME" PRUNE_RULES
 
 
 #
 # main
 #
 
-log "pruning backups using ${#PRUNE_RULES[@]} rule(s) in $CONFIG"
+log "pruning backups using ${#PRUNE_RULES[@]} rule(s) in $JOB_NAME"
 
 BACKUPS=()
-prune_load_backups BACKUPS "$CONFIG" "$@"
+prune_load_backups BACKUPS "$JOB_NAME"
 # backups are tried recent-first, as this aligns with daily/weekly/monthly rule semantics
 # (that is, keep the most recent backup in a given timeframe)
 # TODO: might want to implement configurable order
@@ -36,7 +42,7 @@ prune_try_backups BACKUPS "${PRUNE_RULES[@]}"
 
 if (( ${#PRUNE[@]} )); then
 	log "pruning ${#PRUNE[@]} backup(s)"
-	invoke delete "$CONFIG" "${PRUNE[@]}"
+	invoke delete "$JOB_NAME" "${PRUNE[@]}"
 else
 	log "nothing to prune"
 fi
