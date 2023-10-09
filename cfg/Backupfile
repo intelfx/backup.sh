@@ -70,11 +70,13 @@ job2_snapshot_tag() {
 }
 job2_REPO="ssh://user@hostname/path/to/repo"
 job2_exports() {
+	local borg_dir
+
 	# cfg/borgserver/ has to exist and contain the following secrets:
 	# * pass            passphrase file for Borg
 	# * id_*, id_*.pub  SSH keys for access to remote Borg
 	# * known_hosts     OpenSSH known_hosts file (will be created)
-	local borg_dir="$(config_dir borgserver)"
+	borg_dir="$(config_dir borgserver)"
 
 	# $BORG_CREATE, $BORG_LIST, $BORG_DELETE
 	# can be overridden or extended in this context
