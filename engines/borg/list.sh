@@ -1,18 +1,25 @@
-#!/bin/bash -e
+#!/hint/bash
 
-. ${BASH_SOURCE%/*}/backup_lib.sh || exit
-. borg_lib.sh || exit
+#
+# options
+#
 
+_usage() {
+	cat <<EOF
+$_usage_common_syntax list <JOB>
+$_usage_common_options
+EOF
+}
+
+__verb_expect_args 1
 
 #
 # config
 #
 
-(( $# >= 1 )) || die "bad arguments ($*): expecting <config>"
-CONFIG="$1"
-shift 1
-
-load_config "$CONFIG" "$@"
+config_get_job "$JOB_NAME" BORG_REPO
+config_get_job_f "$JOB_NAME" borg_snapshot_tag borg_exports
+borg_exports
 
 
 #
