@@ -65,9 +65,18 @@ cd "$BORG_MOUNT_DIR"
 	. \
 	&& rc=0 || rc=$?
 
-if (( $rc == 1 )); then
+if (( $rc == 0 )); then
+	:
+elif (( $rc == 1 )); then
 	warn "warnings when creating archive (rc=$rc), ignoring"
-	exit 0
 else
+	err "errors when creating archive (rc=$rc)"
 	exit $rc
+fi
+
+log "Created snapshot: $SNAPSHOT_ID"
+
+# do not annoy the user with the same ID again
+if ! stderr_is_stdout; then
+	echo "$SNAPSHOT_ID"
 fi
