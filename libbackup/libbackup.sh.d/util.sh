@@ -1,6 +1,6 @@
 #!/hint/bash
 
-function ssh_unattended() {
+function make_ssh_cmd() {
 	local dir="$1"
 	local ssh=(
 		ssh
