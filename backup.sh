@@ -44,8 +44,8 @@ fi
 
 config_setup "${ARG_CONFIG-$ARG_CONFIG_DEFAULT}"
 
-VERB="$1"
-VERB_ARGS=( "${@:2}" )
+VERB="${ARGS[0]}"
+VERB_ARGS=( "${ARGS[@]:1}" )
 LIBSH_LOG_PREFIX+=": $VERB"
 set --
 
