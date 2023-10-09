@@ -174,7 +174,7 @@ run_job() {
 		:
 	else
 		rc=$?
-		warn "failed job '$job'"
+		warn "failed to '$verb' job '$job'"
 		FAILED_JOBS[$job]=1
 	fi
 }
