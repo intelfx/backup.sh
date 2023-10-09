@@ -29,8 +29,9 @@ declare -A GLOBAL_OPTIONS=(
 	[-c|--config]="ARG_CONFIG"
 	[--]="ARGS"
 )
-parse_args GLOBAL_OPTIONS "$@"
-
+if ! parse_args GLOBAL_OPTIONS "$@"; then
+	usage ""
+fi
 if ! (( ${#ARGS[@]} >= 1 )); then
 	usage "not enough arguments"
 fi
