@@ -19,8 +19,10 @@ config_setup() {
 		err "configuration path does not exist: $arg"
 		return 1
 	fi
-	export BSH_CONFIG_FILE="$(realpath -qe --strip "$configfile")"
-	export BSH_CONFIG_DIR="$(dirname "$BSH_CONFIG_FILE")"
+
+	configfile="$(realpath -qe --strip -- "$configfile")"
+	export BSH_CONFIG_FILE="$(basename "$configfile")"
+	export BSH_CONFIG_DIR="$(dirname "$configfile")"
 }
 
 __config_load_file() {
