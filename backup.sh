@@ -1,6 +1,9 @@
 #!/bin/bash
 
-. "${BASH_SOURCE%/*}/libbackup/libbackup.sh" || exit
+ARG_CONFIG_DEFAULT="$BSH_ROOT_DIR/cfg"
+ARG_ROOTDIR="${BASH_SOURCE%/*}"
+
+. "$ARG_ROOTDIR/libbackup/libbackup.sh" || exit
 
 _usage() {
 	cat <<EOF
@@ -23,7 +26,6 @@ Global options:
 	-c|--config CONFIG 	Path to main configuration file or directory
 "
 
-ARG_CONFIG_DEFAULT="$BSH_ROOT_DIR/cfg"
 declare -A GLOBAL_OPTIONS=(
 	[getopt]="+"
 	[-c|--config]="ARG_CONFIG"
