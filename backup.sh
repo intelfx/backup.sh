@@ -28,7 +28,7 @@ Global options:
 
 declare -A GLOBAL_OPTIONS=(
 	[getopt]="+"
-	[-c|--config]="ARG_CONFIG"
+	[-c|--config:]="ARG_CONFIG"
 	[-h|--help]="ARG_HELP"
 	[--]="ARGS"
 )
