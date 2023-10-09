@@ -175,3 +175,7 @@ config_get_job_f() {
 config_source() {
 	__config_load_file "$1"
 }
+
+config_file() {
+	__config_file_name "$1"
+}
