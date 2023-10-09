@@ -4,6 +4,7 @@ function make_ssh_cmd() {
 	local dir="$1"
 	local ssh=(
 		ssh
+		-o BatchMode=yes
 		-o IdentitiesOnly=yes
 		-o IdentityAgent=none
 		-o StrictHostKeyChecking=accept-new
