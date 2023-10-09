@@ -17,5 +17,12 @@ engine_verb_dir() {
 }
 
 invoke() {
-	"$BSH_ROOT_DIR/backup.sh" "$@"
+	local __cmd=(
+		"$BSH_ROOT_DIR/backup.sh"
+	)
+	if [[ ${ARG_CONFIG+set} ]]; then
+		__cmd+=( --config "$ARG_CONFIG" )
+	fi
+
+	"${__cmd[@]}" "$@"
 }
