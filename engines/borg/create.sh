@@ -56,8 +56,8 @@ fi
 cleanup_add "invoke unmount '$BORG_MOUNT_DIR'"
 invoke mount "$SOURCE_JOB_NAME" "$SNAPSHOT_ID" "$BORG_MOUNT_DIR"
 
-pushd "$BORG_MOUNT_DIR" &>/dev/null
-cleanup_add "popd &>/dev/null"
+cleanup_add "cd '$PWD'"
+cd "$BORG_MOUNT_DIR"
 
 "${BORG_CREATE[@]}" \
 	"${BORG_ARGS[@]}" \
