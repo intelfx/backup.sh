@@ -40,7 +40,7 @@ if ! (( ${#ARGS[@]} >= 1 )); then
 	usage "not enough arguments"
 fi
 
-config_setup "${ARG_CONFIG:-$ARG_CONFIG_DEFAULT}"
+config_setup "${ARG_CONFIG-$ARG_CONFIG_DEFAULT}"
 
 VERB="$1"
 VERB_ARGS=( "${@:2}" )
