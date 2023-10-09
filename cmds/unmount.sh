@@ -40,4 +40,4 @@ if [[ "$TARGET_FILE" ]]; then
 fi
 
 log "removing '$TARGET_DIR'"
-rm -vr "$TARGET_DIR"
+rm -r "$TARGET_DIR"
