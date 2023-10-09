@@ -29,7 +29,7 @@ __config_file_name() {
 	local __file="$1"
 
 	if [[ $__file == /* ]]; then
-		die "Absolute configuration paths not allowed: $__file"
+		die "absolute configuration paths not allowed: $__file"
 	elif [[ $__file == *..* ]]; then
 		die "\"..\" in configuration paths not allowed: $__file"
 	fi
@@ -38,9 +38,10 @@ __config_file_name() {
 }
 
 __config_load_file() {
-	local __file="$1"
-
-	source "$(__config_file_name "$__file")"
+	local __file="$1" __path
+	__path="$(__config_file_name "$__file")"
+	__config_load_file__last="${__path#$BSH_CONFIG_DIR/}"
+	source "$__path"
 }
 
 __config_load_global() {
@@ -54,33 +55,76 @@ __config_load_job() {
 	__config_load_global
 	if [[ "${JOBS_FILES["$__job"]+set}" ]]; then
 		local __job_file="${JOBS_FILES["$__job"]}"
-		if ! [[ -f "$__job_file" ]]; then
-			err "Configuration file for job $__job invalid: $__job_file"
-			return 1
-		fi
+
 		__config_load_file "$__job_file"
 		__config_load_job__has_file=1
 	fi
-
 }
 
 __config_declare_mangle() {
-	sed -r 's|^declare|& -g|'
+	local __src="$1" __dest="$2"
+	sed -r "1s|^(declare) ((-[a-zA-Z0-9-]+ )+)${__src}=(.+)$|\1 -g \2${__dest}=\4|"
 }
 
-__config_declare_mangle_strip() {
-	local prefix="$1"
-	sed -r "s|^(declare) ((-[a-zA-Z0-9-]+ )+)${prefix}_(.+)$|\1 -g \2\4|"
+__config_declare_mangle_f() {
+	local __src="$1" __dest="$2"
+	sed -r "1s|^${__src} \(\) *$|${__dest} ()|"
 }
 
-__config_declare_mangle_rename() {
-	local src="$1" dest="$2"
-	sed -r "s|^(declare) ((-[a-zA-Z0-9-]+ )+)${src}=(.+)$|\1 -g \2${dest}=\4|"
-}
+__config_extract() {
+	local __prefix="$1" __rc=0
+	shift 1
 
-__config_declare_mangle_strip_f() {
-	local prefix="$1"
-	sed -r "s|^${prefix}_(.+) \(\) *$|\1 ()|"
+	local __src= __dest= __is_function= __is_rename= __is_optional=
+	local __declare_cmd=() __mangle_cmd=
+	while (( $# )); do
+		case "$1" in
+		-r|--rename) __is_rename=1; shift 1 ;;
+		-o|--optional) __is_optional=1; shift 1 ;;
+		-f|--function) __is_function=1; shift 1 ;;
+		*)
+			__src="${__prefix}${1}"
+
+			if [[ $__is_rename ]]; then
+				__dest="${2}"
+				shift 2
+			else
+				__dest="${1}"
+				shift 1
+			fi
+
+			if [[ $__is_function ]]; then
+				if ! [[ "$(type -t $__src)" == function ]]; then
+					if ! [[ $__is_optional ]]; then
+						__rc=1
+						err "$__config_load_file__last: function $__src not found"
+					fi
+					continue
+				fi
+				__declare_cmd=( declare -pf )
+				__mangle_cmd=__config_declare_mangle_f
+			else
+				if ! [[ ${!__src+set} ]]; then
+					if ! [[ $__is_optional ]]; then
+						__rc=1
+						err "$__config_load_file__last: variable $__src not found"
+					fi
+					continue
+				fi
+				__declare_cmd=( declare -p )
+				__mangle_cmd=__config_declare_mangle
+			fi
+
+			"${__declare_cmd[@]}" "$__src" | "$__mangle_cmd" "$__src" "$__dest" || return 1
+
+			# reset flags; others vars are assigned unconditionally
+			__is_function=
+			__is_rename=
+			__is_optional=
+		esac
+	done
+
+	if (( __rc )); then exit $__rc; fi
 }
 
 config_get_global() {
@@ -91,8 +135,8 @@ config_get_global() {
 		__vars_data="$(
 			set -eo pipefail
 			__config_load_global
-			declare -p "${__vars[@]}" | __config_declare_mangle
-		)"
+			__config_extract "" "${__vars[@]}"
+		)" || return 1
 		eval "$__vars_data"
 	else
 		err "config_get_global: unimplemented: getting all variables"
@@ -112,93 +156,14 @@ config_get_job() {
 			#       from the global config (prefixed) and
 			#       from the job config (non-prefixed)
 			if [[ $__config_load_job__has_file ]]; then
-				declare -p "${__vars[@]}" | __config_declare_mangle
+				__config_extract "" "${__vars[@]}"
 			else
-				declare -p "${__vars[@]/#/${__job}_}" | __config_declare_mangle_strip "$__job"
+				__config_extract "${__job}_" "${__vars[@]}"
 			fi
-		)"
+		)" || return 1
 		eval "$__vars_data"
 	else
 		err "config_get_job: unimplemented: getting all variables"
-		return 1
-	fi
-}
-
-config_get_job_optional() {
-	local __job="$1" __vars=( "${@:2}" ) __rc
-
-	if (( ${#__vars[@]} )); then
-		local __vars_data
-		__vars_data="$(
-			set -eo pipefail
-			__config_load_job "$__job"
-			# TODO: support mixing and matching variables
-			#       from the global config (prefixed) and
-			#       from the job config (non-prefixed)
-			if [[ $__config_load_job__has_file ]]; then
-				for __var in "${__vars[@]}"; do
-					if ! [[ ${!__var+set} ]]; then exit 1; fi
-				done
-				declare -p "${__vars[@]}" | __config_declare_mangle
-			else
-				for __var in "${__vars[@]}"; do
-					__var="${__job}_${__var}"
-					if ! [[ ${!__var+set} ]]; then exit 1; fi
-				done
-				declare -p "${__vars[@]/#/${__job}_}" | __config_declare_mangle_strip "$__job"
-			fi
-		)" || return
-		eval "$__vars_data"
-	else
-		err "config_get_job: unimplemented: getting all variables"
-		return 1
-	fi
-}
-
-config_get_job_as() {
-	local __job="$1" __pairs=( "${@:2}" )
-
-	local __vars_data
-	__vars_data="$(
-		set -eo pipefail
-		__config_load_job "$__job"
-		# TODO: support mixing and matching variables
-		#       from the global config (prefixed) and
-		#       from the job config (non-prefixed)
-		while (( ${#__pairs[@]} )); do
-			__var="${__pairs[0]}"
-			__rename="${__pairs[1]}"
-			__pairs=( "${__pairs[@]:2}" )
-			if [[ $__config_load_job__has_file ]]; then
-				declare -p "${__var}" | __config_declare_mangle_rename "${__var}" "${__rename}"
-			else
-				declare -p "${__job}_${__var}" | __config_declare_mangle_rename "${__job}_${__var}" "${__rename}"
-			fi
-		done
-	)"
-	eval "$__vars_data"
-}
-
-config_get_job_f() {
-	local __job="$1" __vars=( "${@:2}" )
-
-	if (( ${#__vars[@]} )); then
-		local __vars_data
-		__vars_data="$(
-			set -eo pipefail
-			__config_load_job "$__job"
-			# TODO: support mixing and matching functions
-			#       from the global config (prefixed) and
-			#       from the job config (non-prefixed)
-			if [[ $__config_load_job__has_file ]]; then
-				declare -pf "${__vars[@]}"
-			else
-				declare -pf "${__vars[@]/#/${__job}_}" | __config_declare_mangle_strip_f "$__job"
-			fi
-		)"
-		eval "$__vars_data"
-	else
-		err "config_get_job_f: unimplemented: getting all functions"
 		return 1
 	fi
 }
