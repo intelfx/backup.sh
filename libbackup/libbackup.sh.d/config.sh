@@ -25,11 +25,22 @@ config_setup() {
 	export BSH_CONFIG_DIR="$(dirname "$configfile")"
 }
 
+__config_file_name() {
+	local __file="$1"
+
+	if [[ $__file == /* ]]; then
+		die "Absolute configuration paths not allowed: $__file"
+	elif [[ $__file == *..* ]]; then
+		die "\"..\" in configuration paths not allowed: $__file"
+	fi
+
+	(cd "$BSH_CONFIG_DIR"; realpath -q --strip -- "$__file")
+}
+
 __config_load_file() {
 	local __file="$1"
 
-	cd "$BSH_CONFIG_DIR"
-	source "$__file"
+	source "$(__config_file_name "$__file")"
 }
 
 __config_load_global() {
