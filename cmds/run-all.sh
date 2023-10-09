@@ -55,7 +55,6 @@ check_power() {
 	done
 	log "check_power: result=no"
 	return 1
-
 }
 
 jqs() {
