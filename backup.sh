@@ -27,10 +27,14 @@ ARG_CONFIG_DEFAULT="$BSH_ROOT_DIR/cfg"
 declare -A GLOBAL_OPTIONS=(
 	[getopt]="+"
 	[-c|--config]="ARG_CONFIG"
+	[-h|--help]="ARG_HELP"
 	[--]="ARGS"
 )
 if ! parse_args GLOBAL_OPTIONS "$@"; then
 	usage ""
+fi
+if (( ARG_HELP )); then
+	usage
 fi
 if ! (( ${#ARGS[@]} >= 1 )); then
 	usage "not enough arguments"
