@@ -38,7 +38,7 @@ SNAPSHOT_TAG_GLOB="$(borg_snapshot_tag "*").*"
 	--format '{barchive}{NUL}' \
 	--consider-checkpoints \
 	"$BORG_REPO" \
-| grep -z -P "$GARBAGE_REGEX" \
+| ( grep -z -P "$GARBAGE_REGEX" || true ) \
 | readarray -d '' -t SNAPSHOT_TAGS
 
 for s in "${SNAPSHOT_TAGS[@]}"; do
