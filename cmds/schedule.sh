@@ -1,18 +1,26 @@
-#!/bin/bash -e
+#!/hint/bash
 
-. ${BASH_SOURCE%/*}/backup_lib.sh || exit
-. ${BASH_SOURCE%/*}/backup_lib_prune.sh || exit
+__verb_load_libs "$VERB_DIR" prune
+
+#
+# options
+#
+
+_usage() {
+	cat <<EOF
+$_usage_common_syntax schedule <JOB>
+$_usage_common_options
+EOF
+}
+
+__verb_expect_args 1
 
 
 #
 # config
 #
 
-(( $# >= 1 )) || die "bad arguments ($*): expecting <config>"
-CONFIG="$1"
-shift 1
-
-load_config "$CONFIG" "$@"
+config_get_job "$JOB_NAME" SCHEDULE_RULES
 
 
 #
@@ -21,10 +29,10 @@ load_config "$CONFIG" "$@"
 
 PRUNE_SILENT=1
 
-log "scheduling a backup using ${#SCHEDULE_RULES[@]} rule(s) in $CONFIG"
+log "scheduling a backup using ${#SCHEDULE_RULES[@]} rule(s) in $JOB_NAME"
 
 BACKUPS=()
-prune_load_backups BACKUPS "$CONFIG" "$@"
+prune_load_backups BACKUPS "$JOB_NAME"
 # backups are tried oldest-first for consistency (so that we try all backups
 # including the one being scheduled in a single order)
 # TODO: prove this is correct
@@ -44,7 +52,7 @@ prune_try_backup "${SCHEDULE_RULES[@]}"
 
 if (( scheduled )); then
 	log "a new backup is accepted at $NOW"
-	invoke create "$CONFIG" "$@"
+	invoke create "$JOB_NAME" "$NOW"
 else
 	log "no new backups need to be created at $NOW"
 fi
