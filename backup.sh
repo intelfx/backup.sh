@@ -151,6 +151,19 @@ elif [[ $VERB == ls-verbs ]]; then
 	print_array "${!VERBS[@]}" | sort
 
 elif [[ -e "$VERB_DIR/$VERB.sh" ]]; then
+	# HACK: special case for global verbs that expect a job name
+	declare -A VERBS_WANT_JOB=(
+		[consume]=1
+		[prune]=1
+		[schedule]=1
+	)
+	if [[ ${VERBS_WANT_JOB[$VERB]+set} ]]; then
+		__verb_expect_args_ge 1
+		__verb_check_job "${VERB_ARGS[0]}"
+
+		JOB_NAME="${VERB_ARGS[0]}"
+	fi
+
 	__verb_load_libs "$VERB_DIR" "$VERB"
 	source "$VERB_DIR/$VERB.sh"
 
