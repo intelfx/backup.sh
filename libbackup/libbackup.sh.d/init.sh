@@ -15,3 +15,7 @@ engine_verb_dir() {
 	fi
 	echo "$verb_dir"
 }
+
+invoke() {
+	"$BSH_ROOT_DIR/backup.sh" "$@"
+}
