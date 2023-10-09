@@ -46,6 +46,15 @@ __config_file_name() {
 	echo "$__path"
 }
 
+__config_dir_name() {
+	local __file="$1" __path
+	__path="$(__config_canonicalize "$__file")"
+	if ! [[ -d "$__path" ]]; then
+		die "configuration directory does not exist: $__file"
+	fi
+	echo "$__path"
+}
+
 __config_load_file() {
 	local __file="$1" __path
 	__path="$(__config_file_name "$__file")"
@@ -183,4 +192,8 @@ config_source() {
 
 config_file() {
 	__config_file_name "$1"
+}
+
+config_dir() {
+	__config_dir_name "$1"
 }
