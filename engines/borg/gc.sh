@@ -44,14 +44,25 @@ SNAPSHOT_TAG_GLOB="$(borg_snapshot_tag "*").*"
 | ( grep -z -P "$GARBAGE_REGEX" || true ) \
 | readarray -d '' -t SNAPSHOT_TAGS
 
+if ! (( ${#SNAPSHOT_IDS[@]} )); then
+	log "no archives to delete"
+	exit 0
+fi
+
 for s in "${SNAPSHOT_TAGS[@]}"; do
 	log "will delete archive '$s'"
 done
 
-if (( ${#SNAPSHOT_TAGS[@]} )); then
-	"${BORG_DELETE[@]}" \
-		"$BORG_REPO" \
-		"${SNAPSHOT_TAGS[@]}"
+"${BORG_DELETE[@]}" \
+	"$BORG_REPO" \
+	"${SNAPSHOT_TAGS[@]}" \
+	&& rc=0 || rc=$?
+
+if (( $rc == 0 )); then
+	:
+elif (( $rc == 1 )); then
+	warn "warnings when deleting archives (rc=$rc), ignoring"
 else
-	log "no archives to delete"
+	err "errors when deleting archives (rc=$rc)"
+	exit $rc
 fi

@@ -42,7 +42,17 @@ log "listing snapshots matching '$SNAPSHOT_TAG_GLOB' in Borg repository '$BORG_R
 	--format '{barchive}{NUL}' \
 	"$BORG_REPO" \
 | ( grep -z -vP "$GARBAGE_REGEX" || true ) \
-| readarray -d '' -t SNAPSHOT_TAGS
+| readarray -d '' -t SNAPSHOT_TAGS \
+&& rc=0 || rc=$?
+
+if (( $rc == 0 )); then
+	:
+elif (( $rc == 1 )); then
+	warn "warnings when listing archives (rc=$rc), ignoring"
+else
+	err "errors when listing archives (rc=$rc)"
+	exit $rc
+fi
 
 print_array "${SNAPSHOT_TAGS[@]}" \
 | sed -nr "s|$SNAPSHOT_ID_REGEX|\\1|p" \

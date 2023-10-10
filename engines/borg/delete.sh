@@ -49,4 +49,14 @@ done
 
 "${BORG_DELETE[@]}" \
 	"$BORG_REPO" \
-	"${SNAPSHOT_TAGS[@]}"
+	"${SNAPSHOT_TAGS[@]}" \
+	&& rc=0 || rc=$?
+
+if (( $rc == 0 )); then
+	:
+elif (( $rc == 1 )); then
+	warn "warnings when deleting archives (rc=$rc), ignoring"
+else
+	err "errors when deleting archives (rc=$rc)"
+	exit $rc
+fi
