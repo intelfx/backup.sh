@@ -1,7 +1,7 @@
 #!/bin/bash
 
-ARG_CONFIG_DEFAULT="$BSH_ROOT_DIR/cfg"
 ARG_ROOTDIR="${BASH_SOURCE%/*}"
+ARG_CONFIG_DEFAULT="$ARG_ROOTDIR/cfg"
 
 . "$ARG_ROOTDIR/libbackup/libbackup.sh" || exit
 
