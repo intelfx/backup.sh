@@ -161,12 +161,12 @@ run_job() {
 
 	if [[ ${job_source+set} ]]; then
 		if [[ ${SKIPPED_JOBS[$job_source]+set} ]]; then
-			warn "skipping job '$job' because its source job '$source_job' was skipped"
+			warn "skipping job '$job' because its source job '$job_source' was skipped"
 			SKIPPED_JOBS[$job]=1
 			return
 		fi
 		if [[ ${FAILED_JOBS[$job_source]+set} ]]; then
-			warn "skipping job '$job' because its source job '$source_job' has failed"
+			warn "skipping job '$job' because its source job '$job_source' has failed"
 			SKIPPED_JOBS[$job]=1
 			return
 		fi
@@ -237,7 +237,7 @@ for j in "${PRUNE_JOBS[@]}"; do
 done
 
 if (( ${#SKIPPED_JOBS[@]} )); then
-	warn "skipped "${#SKIPPED_JOBS} jobs:""
+	warn "skipped "${#SKIPPED_JOBS[@]} jobs:""
 	for j in "${RUN_JOBS[@]}"; do
 		if [[ ${SKIPPED_JOBS[$j]+set} ]]; then
 			say " * $j"
