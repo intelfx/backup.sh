@@ -144,16 +144,16 @@ declare -a PRUNE_JOBS
 
 run_job() {
 	local job="$1" verb
-	if config_get_job_optional "$job" SOURCE_JOB_NAME; then
+	if config_get_job "$job" --optional --rc SOURCE_JOB_NAME; then
 		local job_source="$SOURCE_JOB_NAME"
 	fi
-	if config_get_job_optional "$job" SCHEDULE_RULES; then
+	if config_get_job "$job" --optional --rc SCHEDULE_RULES; then
 		local has_schedule=1
 	fi
-	if config_get_job_optional "$job" PRUNE_RULES; then
+	if config_get_job "$job" --optional --rc PRUNE_RULES; then
 		local has_prune=1
 	fi
-	if config_get_job_optional "$job" CONDITIONS; then
+	if config_get_job "$job" --optional --rc CONDITIONS; then
 		local job_conditions=( "${CONDITIONS[@]}" )
 	else
 		local job_conditions=()
