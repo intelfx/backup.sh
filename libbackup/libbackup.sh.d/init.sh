@@ -3,7 +3,8 @@
 export BSH_ROOT_DIR="$(realpath -qm --strip "$BASH_SOURCE/../../..")"
 export PATH="$BSH_ROOT_DIR/lib:$PATH"
 
-LIBSH_LOG_PREFIX="$(basename "${BASH_SOURCE[2]}")"
+export BSH_ARGV0="${BSH_ARGV0-$0}"
+LIBSH_LOG_PREFIX="${BSH_ARGV0##*/}"
 
 VERB_DIR="$BSH_ROOT_DIR/cmds"
 engine_verb_dir() {
