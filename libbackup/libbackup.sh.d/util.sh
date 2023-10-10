@@ -1,5 +1,7 @@
 #!/hint/bash
 
+BSH_SKIP_RC=43
+
 function make_ssh_cmd() {
 	local dir="$1"
 	local ssh=(
