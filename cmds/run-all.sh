@@ -159,19 +159,6 @@ run_job() {
 		local job_conditions=()
 	fi
 
-	if [[ ${job_source+set} ]]; then
-		if [[ ${SKIPPED_JOBS[$job_source]+set} ]]; then
-			warn "skipping job '$job' because its source job '$job_source' was skipped"
-			SKIPPED_JOBS[$job]=1
-			return
-		fi
-		if [[ ${FAILED_JOBS[$job_source]+set} ]]; then
-			warn "skipping job '$job' because its source job '$job_source' has failed"
-			SKIPPED_JOBS[$job]=1
-			return
-		fi
-	fi
-
 	if [[ ${job_source+set} && ${has_schedule+set} && ${has_prune+set} ]]; then
 		verb=consume
 	elif [[ ${has_schedule+set} ]]; then
@@ -188,15 +175,28 @@ run_job() {
 		fi
 	fi
 
+	if [[ ${job_source+set} ]]; then
+		if [[ ${SKIPPED_JOBS[$job_source]+set} ]]; then
+			warn "skipping '$verb' on job '$job' because its source job '$job_source' was skipped"
+			SKIPPED_JOBS[$job]=1
+			return
+		fi
+		if [[ ${FAILED_JOBS[$job_source]+set} ]]; then
+			warn "skipping '$verb' on job '$job' because its source job '$job_source' has failed"
+			SKIPPED_JOBS[$job]=1
+			return
+		fi
+	fi
+
 	local c
 	for c in "${job_conditions[@]}"; do
 		if ! has_condition "$c"; then
-			err "invalid condition in job '$job': '$c'"
+			err "failing '$verb' on job '$job' because of invalid condition: '$c'"
 			FAILED_JOBS[$job]=1
 			return
 		fi
 		if ! check_condition "$c"; then
-			warn "skipping job '$job' because condition '$c' is unmet"
+			warn "skipping '$verb' on job '$job' because condition '$c' is unmet"
 			SKIPPED_JOBS[$job]=1
 			return
 		fi
