@@ -58,6 +58,9 @@ if (( $rc == 0 )); then
 	:
 elif (( $rc == 1 )); then
 	warn "warnings when deleting archives (rc=$rc), ignoring"
+elif [[ ${BORG_LOCK_RC+set} ]] && (( $rc == BORG_LOCK_RC )); then
+	err "target was busy when deleting archives (rc=$rc)"
+	exit "$BSH_SKIP_RC"
 else
 	err "errors when deleting archives (rc=$rc)"
 	exit $rc
