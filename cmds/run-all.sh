@@ -142,6 +142,10 @@ declare -A SKIPPED_JOBS
 declare -A FAILED_JOBS
 declare -a PRUNE_JOBS
 
+declare -a LOG_SKIP
+declare -a LOG_MINOR
+declare -a LOG_MAJOR
+
 run_job() {
 	local job="$1" verb
 	if config_get_job "$job" --optional --rc --rename SOURCE SOURCE_JOB_NAME; then
@@ -179,11 +183,13 @@ run_job() {
 		if [[ ${SKIPPED_JOBS[$job_source]+set} ]]; then
 			warn "skipping '$verb' on job '$job' because its source job '$job_source' was skipped"
 			SKIPPED_JOBS[$job]=1
+			LOG_SKIP+=( "$job ($verb)" )
 			return
 		fi
 		if [[ ${FAILED_JOBS[$job_source]+set} ]]; then
 			warn "skipping '$verb' on job '$job' because its source job '$job_source' has failed"
 			SKIPPED_JOBS[$job]=1
+			LOG_SKIP+=( "$job ($verb)" )
 			return
 		fi
 	fi
@@ -193,11 +199,13 @@ run_job() {
 		if ! has_condition "$c"; then
 			err "failing '$verb' on job '$job' because of invalid condition: '$c'"
 			FAILED_JOBS[$job]=1
+			LOG_MAJOR+=( "$job ($verb)" )
 			return
 		fi
 		if ! check_condition "$c"; then
 			warn "skipping '$verb' on job '$job' because condition '$c' is unmet"
 			SKIPPED_JOBS[$job]=1
+			LOG_SKIP+=( "$job ($verb)" )
 			return
 		fi
 	done
@@ -206,8 +214,9 @@ run_job() {
 		:
 	else
 		rc=$?
-		warn "failed to '$verb' job '$job'"
+		err "failed to '$verb' job '$job'"
 		FAILED_JOBS[$job]=1
+		LOG_MAJOR+=( "$job ($verb)" )
 		return
 	fi
 
@@ -224,7 +233,7 @@ prune_job() {
 	else
 		rc=$?
 		warn "failed to '$verb' job '$job'"
-		FAILED_JOBS[$job]=1
+		LOG_MINOR+=( "$job ($verb)" )
 	fi
 }
 
@@ -236,21 +245,24 @@ for j in "${PRUNE_JOBS[@]}"; do
 	prune_job "$j"
 done
 
-if (( ${#SKIPPED_JOBS[@]} )); then
-	warn "skipped "${#SKIPPED_JOBS[@]} jobs:""
-	for j in "${RUN_JOBS[@]}"; do
-		if [[ ${SKIPPED_JOBS[$j]+set} ]]; then
-			say " * $j"
-		fi
+if (( ${#LOG_SKIP[@]} )); then
+	warn "skipped ${#LOG_SKIP[@]} jobs:"
+	for j in "${LOG_SKIP[@]}"; do
+		say " * $j"
 	done
 fi
 
-if (( ${#FAILED_JOBS[@]} )); then
-	err "failed ${#FAILED_JOBS[@]} jobs:"
-	for j in "${RUN_JOBS[@]}"; do
-		if [[ ${FAILED_JOBS[$j]+set} ]]; then
-			say " * $j"
-		fi
+if (( ${#LOG_MINOR[@]} )); then
+	warn "failed ${#LOG_MINOR[@]} jobs (non-fatal):"
+	for j in "${LOG_MINOR[@]}"; do
+		say " * $j"
+	done
+fi
+
+if (( ${#LOG_MAJOR[@]} )); then
+	err "failed ${#LOG_MAJOR[@]} jobs:"
+	for j in "${LOG_MAJOR[@]}"; do
+		say " * $j"
 	done
 	exit 1
 fi
