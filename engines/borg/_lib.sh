@@ -29,3 +29,28 @@ BORG_DELETE=(
 	--stats
 	--verbose
 )
+
+
+borg_setup() {
+	# HACK: check if `borg --show-rc` is supported
+	if "${BORG_CREATE[@]:0:1}" --help |& grep -q -- '--lock-rc'; then
+		BORG_LOCK_RC="$BSH_SKIP_RC"
+		BORG_CREATE=(
+			"${BORG_CREATE[@]:0:2}"
+			--lock-rc "$BORG_LOCK_RC"
+			"${BORG_CREATE[@]:2}"
+		)
+		BORG_LIST=(
+			"${BORG_LIST[@]:0:2}"
+			--lock-rc "$BORG_LOCK_RC"
+			"${BORG_LIST[@]:2}"
+		)
+		BORG_DELETE=(
+			"${BORG_DELETE[@]:0:2}"
+			--lock-rc "$BORG_LOCK_RC"
+			"${BORG_DELETE[@]:2}"
+		)
+	else
+		unset BORG_LOCK_RC
+	fi
+}

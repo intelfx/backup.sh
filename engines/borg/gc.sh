@@ -29,6 +29,8 @@ borg_exports
 # main
 #
 
+borg_setup
+
 log "garbage collecting obsolete archives (checkpoints) from Borg repository '$BORG_REPO'"
 
 # *.recreate, *.checkpoint, *.checkpoint.N or any combination

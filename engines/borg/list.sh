@@ -30,6 +30,8 @@ borg_exports
 # main
 #
 
+borg_setup
+
 # *.recreate, *.checkpoint, *.checkpoint.N or any combination
 GARBAGE_REGEX='(?!$)(\.recreate)?(\.checkpoint(\.[0-9]+)?)?$'
 # if the '*' ends up in the trailing position, we will inadvertently match garbage along actual archives

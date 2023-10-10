@@ -33,6 +33,8 @@ borg_exports
 # main
 #
 
+borg_setup
+
 log "deleting ${#SNAPSHOT_IDS[@]} archive(s) from Borg repository '$BORG_REPO'"
 
 if ! (( ${#SNAPSHOT_IDS[@]} )); then

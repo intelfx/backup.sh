@@ -42,6 +42,8 @@ SNAPSHOT_TAG="$(borg_snapshot_tag "$SNAPSHOT_ID")"
 # main
 #
 
+borg_setup
+
 log "backing up snapshot '$SNAPSHOT_ID' to Borg repository '$BORG_REPO' as '$SNAPSHOT_TAG'"
 
 BORG_ARGS=()
