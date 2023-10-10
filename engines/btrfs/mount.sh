@@ -41,7 +41,7 @@ btrfs_setup_from_path MOUNT_DIR "$BTRFS_FILESYSTEM"
 
 SNAPSHOT_DIR="$MOUNT_DIR/$SNAPSHOT_PATH"
 if ! [[ -d "$SNAPSHOT_DIR" ]]; then
-	die "bad snapshot dir: $SNAPSHOT_DIR (id: $SNAPSHOT_ID)"
+	die "snapshot does not exist: $SNAPSHOT_ID"
 fi
 
 mkdir -p "$TARGET_DIR"

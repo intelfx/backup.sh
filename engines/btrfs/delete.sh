@@ -40,16 +40,23 @@ fi
 btrfs_setup_signals
 btrfs_setup_from_path MOUNT_DIR "$BTRFS_FILESYSTEM"
 
+rc=0
 SNAPSHOT_DIRS=()
 for id in "${SNAPSHOT_IDS[@]}"; do
 	path="$(btrfs_snapshot_path "$id")"
-	log "deleting snapshot tree '$path'"
 
 	dir="$MOUNT_DIR/$path"
 	if ! [[ -d "$dir" ]]; then
-		die "bad snapshot dir: $dir"
+		err "snapshot does not exist: $id"
+		rc=1
+		continue
 	fi
 	SNAPSHOT_DIRS+=( "$dir" )
+done
+if (( rc )); then exit $rc; fi
+
+for dir in "${SNAPSHOT_DIRS[@]}"; do
+	log "deleting snapshot tree '${dir#$MOUNT_DIR/}'"
 done
 
 SUBVOLUMES_LIST_CMD=(
