@@ -89,17 +89,20 @@ __config_declare_mangle_f() {
 	sed -r "1s|^${__src} \(\) *$|${__dest} ()|"
 }
 
+# return 1 if errors were encountered (output must be discarded)
+# return 2 if rc-required optional variables were missing
 __config_extract() {
-	local __prefix="$1" __rc=0
+	local __prefix="$1" __err= __warn=
 	shift 1
 
 	local __src= __dest= __is_function= __is_rename= __is_optional=
-	local __declare_cmd=() __mangle_cmd=
+	local __want_rc= __declare_cmd=() __mangle_cmd=
 	while (( $# )); do
 		case "$1" in
 		-r|--rename) __is_rename=1; shift 1 ;;
 		-o|--optional) __is_optional=1; shift 1 ;;
 		-f|--function) __is_function=1; shift 1 ;;
+		--rc) __want_rc=1; shift 1 ;;
 		*)
 			__src="${__prefix}${1}"
 
@@ -114,8 +117,10 @@ __config_extract() {
 			if [[ $__is_function ]]; then
 				if ! [[ "$(type -t $__src)" == function ]]; then
 					if ! [[ $__is_optional ]]; then
-						__rc=1
+						__err=1
 						err "$__config_load_file__last: function $__src not found"
+					elif [[ $__want_rc ]]; then
+						__warn=1
 					fi
 					continue
 				fi
@@ -124,8 +129,10 @@ __config_extract() {
 			else
 				if ! [[ ${!__src+set} ]]; then
 					if ! [[ $__is_optional ]]; then
-						__rc=1
+						__err=1
 						err "$__config_load_file__last: variable $__src not found"
+					elif [[ $__want_rc ]]; then
+						__warn=1
 					fi
 					continue
 				fi
@@ -133,40 +140,45 @@ __config_extract() {
 				__mangle_cmd=__config_declare_mangle
 			fi
 
-			"${__declare_cmd[@]}" "$__src" | "$__mangle_cmd" "$__src" "$__dest" || return 1
+			"${__declare_cmd[@]}" "$__src" | "$__mangle_cmd" "$__src" "$__dest" || __err=1
 
 			# reset flags; others vars are assigned unconditionally
 			__is_function=
 			__is_rename=
 			__is_optional=
+			__want_rc=
 		esac
 	done
 
-	if (( __rc )); then exit $__rc; fi
+	if (( __err )); then return 1; fi
+	if (( __warn )); then return 2; fi
+	return 0
 }
 
 config_get_global() {
 	local __vars=( "$@" )
 
 	if (( ${#__vars[@]} )); then
-		local __vars_data
+		local __vars_data __rc
 		__vars_data="$(
 			set -eo pipefail
 			__config_load_global
 			__config_extract "" "${__vars[@]}"
-		)" || return 1
+		)" || __rc=$?
+		(( __rc == 0 || __rc == 2 )) || return 1
 		eval "$__vars_data"
 	else
 		err "config_get_global: unimplemented: getting all variables"
 		return 1
 	fi
+	(( __rc == 0 )) || return 1
 }
 
 config_get_job() {
 	local __job="$1" __vars=( "${@:2}" )
 
 	if (( ${#__vars[@]} )); then
-		local __vars_data
+		local __vars_data __rc
 		__vars_data="$(
 			set -eo pipefail
 			__config_load_job "$__job"
@@ -178,12 +190,14 @@ config_get_job() {
 			else
 				__config_extract "${__job}_" "${__vars[@]}"
 			fi
-		)" || return 1
+		)" || __rc=$?
+		(( __rc == 0 || __rc == 2 )) || return 1
 		eval "$__vars_data"
 	else
 		err "config_get_job: unimplemented: getting all variables"
 		return 1
 	fi
+	(( __rc == 0 )) || return 1
 }
 
 config_source() {
