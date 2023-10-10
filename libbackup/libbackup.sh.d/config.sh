@@ -89,6 +89,69 @@ __config_declare_mangle_f() {
 	sed -r "1s|^${__src} \(\) *$|${__dest} ()|"
 }
 
+__config_load0() {
+	if ! [[ ${__fnames_defined0+set} ]]; then
+		declare -g -a __fnames_defined0
+		declare -F | readarray -t __fnames_defined0
+		# strip everything before the last space character
+		__fnames_defined0=( "${__fnames_defined0[@]##* }" )
+	fi
+}
+
+__config_load1() {
+	if ! [[ ${__fnames_defined1+set} ]]; then
+		declare -g -a __fnames_defined1
+		declare -F | readarray -t __fnames_defined1
+		# strip everything before the last space character
+		__fnames_defined1=( "${__fnames_defined1[@]##* }" )
+
+		declare -g -a __fnames_defined
+		# get functions that were defined in the config
+		printf "%s\n" "${__fnames_defined1[@]}" \
+		| grep -Fvxf <(printf "%s\n" "${__fnames_defined0[@]}") \
+		| readarray -t __fnames_defined
+	fi
+}
+
+__config_extract_dependencies() {
+	__config_load1
+
+	local __src="$1"
+	local __flines=() __fwords=() __fnames_used __f
+
+	# mark this function as processed (loop avoidance)
+	declare -g -A __fnames_visited
+	__fnames_visited[$__src]=1
+
+	# read the function definition
+	declare -f "$__src" | readarray -t __flines
+
+	# chop the name, the opening brace and the closing brace
+	[[ "${__flines[0]}" == "$__src () " &&
+	   "${__flines[1]}" == "{ " &&
+	   "${__flines[-1]}" == "}" ]] || { err "Internal error: malformed function definition: $__src"; return 1; }
+	(( ${#__flines[@]} > 3 )) || return 0
+	__flines=( "${__flines[@]:2:${#__flines[@]}-3}" )
+
+	# get function names used in the definition
+	printf "%s\n" "${__flines[@]}" \
+	| { grep -Eo '[A-Za-z_][A-Za-z0-9_]*' || true; } \
+	| { grep -Fxf <(printf "%s\n" "${__fnames_defined[@]}") || true; } \
+	| readarray -t __fnames_used
+	[[ ${__fnames_used+set} ]] || return 0
+
+	for __f in "${__fnames_used[@]}"; do
+		# avoid loops
+		if [[ ${__fnames_visited[$__f]+set} ]]; then
+			continue
+		fi
+		# recursively extract dependencies
+		__config_extract_dependencies "$__f" || return 1
+		# emit this function
+		declare -f "$__f"
+	done
+}
+
 # return 1 if errors were encountered (output must be discarded)
 # return 2 if rc-required optional variables were missing
 __config_extract() {
@@ -124,8 +187,9 @@ __config_extract() {
 					fi
 					continue
 				fi
-				__declare_cmd=( declare -pf )
+				__declare_cmd=( declare -f )
 				__mangle_cmd=__config_declare_mangle_f
+				__config_extract_dependencies "$__src" || __err=1
 			else
 				if ! [[ ${!__src+set} ]]; then
 					if ! [[ $__is_optional ]]; then
@@ -162,6 +226,7 @@ config_get_global() {
 		local __vars_data __rc
 		__vars_data="$(
 			set -eo pipefail
+			__config_load0
 			__config_load_global
 			__config_extract "" "${__vars[@]}"
 		)" || __rc=$?
@@ -181,6 +246,7 @@ config_get_job() {
 		local __vars_data __rc
 		__vars_data="$(
 			set -eo pipefail
+			__config_load0
 			__config_load_job "$__job"
 			# TODO: support mixing and matching variables
 			#       from the global config (prefixed) and
