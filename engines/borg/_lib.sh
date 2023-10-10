@@ -25,6 +25,7 @@ BORG_LIST=(
 BORG_DELETE=(
 	borg delete
 	--lock-wait 60
+	"${BORG_PROGRESS_ARGS[@]}"
 	--stats
 	--verbose
 )
