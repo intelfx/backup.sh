@@ -147,7 +147,8 @@ declare -a LOG_MINOR
 declare -a LOG_MAJOR
 
 run_job() {
-	local job="$1" verb
+	local job="$1" verb rc
+
 	if config_get_job "$job" --optional --rc --rename SOURCE SOURCE_JOB_NAME; then
 		local job_source="$SOURCE_JOB_NAME"
 	fi
@@ -210,10 +211,16 @@ run_job() {
 		fi
 	done
 
-	if invoke "$verb" "$job"; then
+	invoke "$verb" "$job" && rc=0 || rc=$?
+
+	if (( rc == 0 )); then
 		:
+	elif (( rc == BSH_SKIP_RC )); then
+		warn "skipping '$verb' on job '$job'"
+		SKIPPED_JOBS[$job]=1
+		LOG_SKIP+=( "$job ($verb)" )
+		return
 	else
-		rc=$?
 		err "failed to '$verb' job '$job'"
 		FAILED_JOBS[$job]=1
 		LOG_MAJOR+=( "$job ($verb)" )
@@ -226,12 +233,16 @@ run_job() {
 }
 
 prune_job() {
-	local job="$1" verb="prune"
+	local job="$1" verb="prune" rc
 
-	if invoke "$verb" "$job"; then
+	invoke "$verb" "$job" && rc=0 || rc=$?
+
+	if (( rc == 0 )); then
 		:
+	elif (( rc == BSH_SKIP_RC )); then
+		warn "skipping '$verb' on job '$job'"
+		LOG_SKIP+=( "$job ($verb)" )
 	else
-		rc=$?
 		warn "failed to '$verb' job '$job'"
 		LOG_MINOR+=( "$job ($verb)" )
 	fi
