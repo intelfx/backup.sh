@@ -164,6 +164,13 @@ run_job() {
 		local job_conditions=()
 	fi
 
+	if [[ ${has_prune+set} ]]; then
+		# add job to the list of jobs to be pruned.
+		# do it early -- if anything happens to the main job,
+		# we'll want to log the (skipped) prune as well
+		PRUNE_JOBS+=( "$job" )
+	fi
+
 	if [[ ${job_source+set} && ${has_schedule+set} && ${has_prune+set} ]]; then
 		verb=consume
 	elif [[ ${has_schedule+set} ]]; then
@@ -226,14 +233,21 @@ run_job() {
 		LOG_MAJOR+=( "$job ($verb)" )
 		return
 	fi
-
-	if [[ ${has_prune+set} ]]; then
-		PRUNE_JOBS+=( "$job" )
-	fi
 }
 
 prune_job() {
 	local job="$1" verb="prune" rc
+
+	if [[ ${SKIPPED_JOBS[$job]+set} ]]; then
+		warn "skipping '$verb' on job '$job' because the main job was skipped"
+		LOG_SKIP+=( "$job ($verb)" )
+		return
+	fi
+	if [[ ${FAILED_JOBS[$job]+set} ]]; then
+		warn "skipping '$verb' on job '$job' because the main job has failed"
+		LOG_SKIP+=( "$job ($verb)" )
+		return
+	fi
 
 	invoke "$verb" "$job" && rc=0 || rc=$?
 
