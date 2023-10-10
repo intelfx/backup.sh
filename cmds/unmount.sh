@@ -25,7 +25,7 @@ if ! [[ -d "$TARGET_DIR" ]]; then
 fi
 
 </proc/self/mountinfo awk "{ print \$5 }" \
-| grep -E "^$TARGET_DIR(/|$)" \
+| ( grep -E "^$TARGET_DIR(/|$)" || true ) \
 | sort -r \
 | readarray -t MOUNTPOINTS
 
