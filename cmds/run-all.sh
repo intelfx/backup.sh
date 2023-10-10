@@ -144,7 +144,7 @@ declare -a PRUNE_JOBS
 
 run_job() {
 	local job="$1" verb
-	if config_get_job "$job" --optional --rc SOURCE_JOB_NAME; then
+	if config_get_job "$job" --optional --rc --rename SOURCE SOURCE_JOB_NAME; then
 		local job_source="$SOURCE_JOB_NAME"
 	fi
 	if config_get_job "$job" --optional --rc SCHEDULE_RULES; then
