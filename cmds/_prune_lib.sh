@@ -1,5 +1,6 @@
 #!/hint/bash
 
+shopt -s extglob
 
 #
 # subroutines
@@ -62,7 +63,7 @@ prune_delete_old() {
 
 prune_state_var() {
 	local method="$1"
-	echo "__prune_state${PRUNE_STATE:+__${PRUNE_STATE}}__$(echo -n "$method" | tr -cs '[a-zA-Z0-9]' '_')"
+	echo "__prune_state${PRUNE_STATE:+__${PRUNE_STATE}}__${method//+(!([a-zA-Z0-9]))/_}"
 }
 
 prune_state_reset() {
