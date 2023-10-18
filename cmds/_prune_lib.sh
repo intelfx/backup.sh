@@ -45,7 +45,7 @@ prune_keep_recent() {
 	(( min_age > 0 )) || die "prune_keep_recent: bad min_age: ${min_age}"
 
 	if (( snap_age < min_age )); then
-		dbg "rule: prune_keep_recent $*: backup $snap is newer than ${min_age} seconds (snap=$snap, now=$NOW), keeping"
+		#dbg "rule: prune_keep_recent $*: backup $snap is newer than ${min_age} seconds (snap=$snap, now=$NOW), keeping"
 		keep=1
 	fi
 }
@@ -56,7 +56,7 @@ prune_delete_old() {
 	(( max_age > 0 )) || die "prune_delete_old: bad max_age: ${max_age}"
 
 	if (( snap_age > max_age )); then
-		dbg "rule: prune_delete_old $*: backup $snap is older than ${max_age} seconds (snap=$snap, now=$NOW), deleting"
+		#dbg "rule: prune_delete_old $*: backup $snap is older than ${max_age} seconds (snap=$snap, now=$NOW), deleting"
 		delete=1
 	fi
 }
@@ -117,17 +117,17 @@ _prune_keep_within_timeframe() {
 		min_epoch="$(epoch "$min")"
 	fi
 	if (( snap_epoch < min_epoch )); then
-		dbg "rule: $desc: backup $snap is older than $log_max_age ${log_age_unit}s (snap=$snap, min=$min), skipping"
+		#dbg "rule: $desc: backup $snap is older than $log_max_age ${log_age_unit}s (snap=$snap, min=$min), skipping"
 		return
 	fi
 
 	local bucket="$($bucket_f "$snap")"
 	if (( state[$bucket] >= count )); then
-		dbg "rule: $desc: backup $snap is in excess of allowed $count backups in bucket $bucket (already ${state[$bucket]:-0}), skipping"
+		#dbg "rule: $desc: backup $snap is in excess of allowed $count backups in bucket $bucket (already ${state[$bucket]:-0}), skipping"
 		return
 	fi
 
-	dbg "rule: $desc: backup $snap is within allowed $count backups in bucket $bucket (already ${state[$bucket]:-0}), keeping"
+	#dbg "rule: $desc: backup $snap is within allowed $count backups in bucket $bucket (already ${state[$bucket]:-0}), keeping"
 	keep=1
 	(( ++state[$bucket] ))
 }
@@ -262,7 +262,7 @@ prune_set_verdict() {
 prune_try_rule() {
 	local keep=0 delete=0
 	local rule=( $rule ) # split words
-	dbg "rule: $(printf "'%s' " "${rule[@]}")"
+	#dbg "rule: $(printf "'%s' " "${rule[@]}")"
 
 	if ! [[ "${rule[0]}" == *=* ]]; then
 		"prune_${rule[0]}" "${rule[@]:1}"
@@ -284,7 +284,7 @@ prune_try_backup() {
 		die "bad backup timestamp, aborting: snap=$snap ($snap_epoch), now=$NOW ($NOW_EPOCH), age=$snap_age < 0"
 	fi
 
-	dbg "trying backup: $snap ($snap_epoch), age=$snap_age"
+	#dbg "trying backup: $snap ($snap_epoch), age=$snap_age"
 
 	# only the first matched rule is used to generate a verdict, but we still run all rules to update their state
 	local rule verdict="" verdict_rule=""
