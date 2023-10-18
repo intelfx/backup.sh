@@ -163,7 +163,6 @@ prune_sort_backups BACKUPS
 prune_try_backups BACKUPS "${SCHEDULE_RULES[@]}"
 
 # then schedule candidates and record successfully scheduled
-prune_reset BACKUPS
 prune_add_backups BACKUPS "${CANDIDATE_IDS[@]}"
 prune_sort_backups BACKUPS
 CANDIDATE_IDS=()
