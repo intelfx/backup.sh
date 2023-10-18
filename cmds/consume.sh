@@ -155,9 +155,10 @@ consume_flag "C" "${CANDIDATE_IDS[@]}"
 #
 
 PRUNE_SILENT=1
+BACKUPS=()
 
 # first, try all existing backups without storing results to fill the buckets
-BACKUPS=()
+prune_reset BACKUPS
 prune_add_backups BACKUPS "${DESTINATION_IDS[@]}"
 # backups are tried oldest-first for consistency (so that we try all backups
 # including those being scheduled in a global order)
@@ -166,7 +167,7 @@ prune_sort_backups BACKUPS
 prune_try_backups BACKUPS "${SCHEDULE_RULES[@]}"
 
 # then schedule candidates and record successfully scheduled
-BACKUPS=()
+prune_reset BACKUPS
 prune_add_backups BACKUPS "${CANDIDATE_IDS[@]}"
 prune_sort_backups BACKUPS
 CANDIDATE_IDS=()
@@ -181,7 +182,7 @@ consume_flag "H" "${CANDIDATE_IDS[@]}"
 # Run a test prune to see which consumed backups would be immediately pruned
 #
 
-BACKUPS=()
+prune_reset BACKUPS
 prune_add_backups BACKUPS "${DESTINATION_IDS[@]}"
 prune_add_backups BACKUPS "${CANDIDATE_IDS[@]}"
 # backups are tried recent-first, as this aligns with daily/weekly/monthly rule semantics
@@ -207,7 +208,7 @@ consume_flag "F" "${CANDIDATE_IDS[@]}"
 #
 
 # sort all backups oldest-first for consistency
-BACKUPS=()
+prune_reset BACKUPS
 prune_add_backups BACKUPS "${!CONSUME_STATUS[@]}"
 prune_sort_backups BACKUPS
 prune_get_backups BACKUPS | readarray -t ALL_IDS
@@ -245,7 +246,7 @@ log "$dashed"
 
 # sort candidates oldest-first, so that we consume backups in a global order
 # from oldest to newest over multiple invocations (useful for e. g. borg caching)
-BACKUPS=()
+prune_reset BACKUPS
 prune_add_backups BACKUPS "${CANDIDATE_IDS[@]}"
 prune_sort_backups BACKUPS
 prune_get_backups BACKUPS | readarray -t CANDIDATE_IDS
