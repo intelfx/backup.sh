@@ -294,13 +294,13 @@ prune_try_backup() {
 	case "$verdict" in
 	keep)
 		_prune_log "verdict: $snap = RETAIN (rule: $verdict_rule)"
-		if type -t retain_callback &>/dev/null; then
+		if [[ $has_retain_callback ]]; then
 			retain_callback "$snap"
 		fi
 		;;
 	delete)
 		_prune_log "verdict: $snap = PRUNE (rule: $verdict_rule)"
-		if type -t prune_callback &>/dev/null; then
+		if [[ $has_prune_callback ]]; then
 			prune_callback "$snap"
 		fi
 		;;
@@ -363,6 +363,9 @@ prune_get_backups() {
 prune_try_backups() {
 	declare -n backups="$1"
 	shift
+	local has_retain_callback has_prune_callback
+	if type -t retain_callback &>/dev/null; then has_retain_callback=1; fi
+	if type -t prune_callback &>/dev/null; then has_prune_callback=1; fi
 	local snap snap_epoch
 	for line in "${backups[@]}"; do
 		read snap_epoch snap <<< "$line"
