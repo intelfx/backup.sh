@@ -62,7 +62,7 @@ prune_delete_old() {
 
 prune_state_var() {
 	local method="$1"
-	echo "prune_state${PRUNE_STATE:+_${PRUNE_STATE}}__$(echo -n "$method" | tr -cs '[a-zA-Z0-9]' '_')"
+	echo "__prune_state${PRUNE_STATE:+__${PRUNE_STATE}}__$(echo -n "$method" | tr -cs '[a-zA-Z0-9]' '_')"
 }
 
 _prune_parse_max_age() {
