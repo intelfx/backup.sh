@@ -29,6 +29,7 @@ package() {
         'btrfs-progs'
         'python-btrfs'
     )
+
     cd backup.sh
 
     install -dm755 \
@@ -39,8 +40,8 @@ package() {
         "$pkgdir/usr/share/doc/backup.sh"
 
     cp -r \
-        cfg \
-        -T "$pkgdir/etc/backup.sh"
+        cfg/Backupfile \
+        -t "$pkgdir/etc/backup.sh"
 
     cp -r \
         systemd \
