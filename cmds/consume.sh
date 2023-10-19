@@ -117,7 +117,7 @@ consume_flag() {
 	local id flags
 	for id; do
 		flags="${CONSUME_STATUS[$id]:-$CONSUME_STATUS_DEFAULT}"
-		CONSUME_STATUS["$id"]="${flags^${flag,}}"
+		CONSUME_STATUS[$id]="${flags^^${flag,,}}"
 	done
 }
 
@@ -221,7 +221,7 @@ log " F -- final candidate (C + H + R)"
 log "$dashed"
 
 for id in "${ALL_IDS[@]}"; do
-	flags="${CONSUME_STATUS["$id"]//[a-z]/ }"
+	flags="${CONSUME_STATUS[$id]//[a-z]/ }"
 	echo "$id"$'\t'"$flags"
 done | column -s $'\t' -t | while read -r line; do
 	log "$line"
