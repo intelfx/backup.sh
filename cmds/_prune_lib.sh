@@ -65,6 +65,13 @@ prune_state_var() {
 	echo "__prune_state${PRUNE_STATE:+__${PRUNE_STATE}}__$(echo -n "$method" | tr -cs '[a-zA-Z0-9]' '_')"
 }
 
+prune_state_reset() {
+	local var
+	for var in "${!__prune_state__@}"; do
+		unset "$var"
+	done
+}
+
 _prune_parse_max_age() {
 	if (( minutes > 0 )); then
 		# roll back to beginning of the minute, then subtract minutes
@@ -315,6 +322,12 @@ _prune_add_backup() {
 
 _prune_sort_backups() {
 	sort_array backups -n -k1 "$@"
+}
+
+prune_reset() {
+	declare -n backups="$1"
+	backups=()
+	prune_state_reset
 }
 
 prune_load_backups() {
