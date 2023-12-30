@@ -1,1 +1,38 @@
+# XDG
+- **/.cache/
+- **/.local/share/Trash/
+
+# Flatpak
+- **/var/lib/flatpak/repo/objects/
+- **/var/lib/flatpak/repo/app/
+- **/var/lib/flatpak/repo/runtime/
+- **/.local/share/flatpak/repo/objects/
+- **/.local/share/flatpak/app/
+- **/.local/share/flatpak/runtime/
+- **/.var/app/*/cache/
+
+# Docker, Podman
+- **/.local/share/containers/storage/btrfs/
+- **/.local/share/containers/storage/overlay/
+- **/var/lib/containers/storage/btrfs/
+- **/var/lib/containers/storage/overlay/
+
+# Language package managers
+- **/go/pkg/
+- **/.cargo/git/
+- **/.cargo/registry/
+- **/.bundle/cache/
+- **/.dub/packages/cache/
+- **/.nuget/packages/
+- **/.local/share/NuGet/http-cache/
+- **/.local/share/fnm/
+- **/.tox/
+- **/.npm/
+- **/.node-gyp/
+- **/.electron-gyp/
+
+# Syncthing
+- **/.config/syncthing/index-*.db/
+
+# Git
 - **/.git/subtree-cache/
