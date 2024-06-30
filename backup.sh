@@ -45,12 +45,22 @@ if ! (( ${#ARGS[@]} >= 1 )); then
 	usage "not enough arguments"
 fi
 
+
+#
+# config
+#
+
 config_setup "${ARG_CONFIG-$ARG_CONFIG_DEFAULT}"
 
 VERB="${ARGS[0]}"
 VERB_ARGS=( "${ARGS[@]:1}" )
 LIBSH_LOG_PREFIX+=": $VERB"
 set --
+
+
+#
+# functions
+#
 
 cleanup_add() {
 	ltrap "$@"
@@ -130,6 +140,11 @@ __verb_load_libs() {
 		___verb_load_lib_dir "$dir/_${verb}_lib"
 	fi
 }
+
+
+#
+# main
+#
 
 if [[ $VERB == ls-jobs ]]; then
 	__verb_expect_args 0
