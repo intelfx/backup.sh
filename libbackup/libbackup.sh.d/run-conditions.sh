@@ -99,3 +99,35 @@ check_internet_metered() {
 check_internet() {
 	check_internet_connected && check_internet_metered
 }
+
+#
+# "idle" (via logind)
+#
+
+check_idle() {
+	local idle_delay idle_period_start idle_period_end
+	local has_idle_delay has_idle_slots
+	local -a idle_slots
+
+	if config_get_job "$job" --optional --rc IDLE_DELAY; then
+		has_idle_delay=1
+		idle_delay="$IDLE_DELAY"
+	fi
+	if config_get_job "$job" --optional --rc IDLE_SLOTS; then
+		has_idle_slots=1
+		idle_slots="$IDLE_SLOTS"
+	fi
+
+	if (( has_idle_delay )); then
+		err "check_idle: unimplemented: IDLE_DELAY"
+		return 1
+	fi
+
+	if (( has_idle_slots )); then
+		err "check_idle: unimplemented: IDLE_SLOTS"
+		return 1
+	fi
+
+	warn "check_idle: nothing to check"
+	return 0
+}
