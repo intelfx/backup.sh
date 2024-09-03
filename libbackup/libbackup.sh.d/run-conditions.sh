@@ -101,6 +101,14 @@ check_internet() {
 }
 
 #
+# HACK: always-reject condition for scripting in Backupfile
+#
+
+check_reject() {
+	return 1
+}
+
+#
 # "idle" (via logind)
 #
 
