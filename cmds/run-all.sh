@@ -109,7 +109,7 @@ run_job() {
 		fi
 	fi
 
-	local c
+	local c rc
 	for c in "${job_conditions[@]}"; do
 		if ! has_condition "$c"; then
 			err "failing '$verb' on job '$job' because of invalid condition: '$c'"
@@ -117,7 +117,12 @@ run_job() {
 			LOG_MAJOR+=( "$job ($verb)" )
 			return
 		fi
-		if ! check_condition "$c"; then
+		if check_condition "$c"; rc=$?; (( rc > 1 )); then
+			err "failing '$verb' on job '$job' because of error evaluating condition: '$c'"
+			FAILED_JOBS[$job]=1
+			LOG_MAJOR+=( "$job ($verb)" )
+			return
+		elif (( rc != 0 )); then
 			warn "skipping '$verb' on job '$job' because condition '$c' is unmet"
 			SKIPPED_JOBS[$job]=1
 			LOG_SKIP+=( "$job ($verb)" )
