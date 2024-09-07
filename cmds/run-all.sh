@@ -6,13 +6,26 @@
 
 _usage() {
 	cat <<EOF
-$_usage_common_syntax run-all [JOBS...]
+$_usage_common_syntax run-all [--bypass] [JOBS...]
 $_usage_common_options
 run-all options:
+	--bypass		Bypass condition checks and run all jobs
 	JOBS...			Name(s) of backup job(s) to run
 				(if unspecified, all jobs will be considered)
 EOF
 }
+
+declare -A OPTIONS=(
+	[-h|--help]="ARG_HELP"
+	[--bypass]="ARG_BYPASS"
+	[--]="VERB_ARGS"
+)
+if ! parse_args OPTIONS "${VERB_ARGS[@]}"; then
+	usage ""
+fi
+if (( ARG_HELP )); then
+	usage
+fi
 
 
 #
@@ -43,7 +56,7 @@ fi
 # main
 #
 
-log "running ${#RUN_JOBS[@]} backup jobs"
+log "running ${#RUN_JOBS[@]} backup jobs${ARG_BYPASS+" (ignoring conditions)"}"
 
 declare -A SKIPPED_JOBS
 declare -A FAILED_JOBS
@@ -65,7 +78,8 @@ run_job() {
 	if config_get_job "$job" --optional --rc PRUNE_RULES; then
 		local has_prune=1
 	fi
-	if config_get_job "$job" --optional --rc CONDITIONS; then
+	if [[ ! ${ARG_BYPASS+set} ]] \
+	&& config_get_job "$job" --optional --rc CONDITIONS; then
 		local job_conditions=( "${CONDITIONS[@]}" )
 	else
 		local job_conditions=()
