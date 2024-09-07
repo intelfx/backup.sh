@@ -93,7 +93,7 @@ _prune_parse_max_age() {
 		# roll back to 00:00:00, then roll back to last Monday, then subtract weeks
 		max_age="$(now -Idate) last Monday -$weeks weeks"
 		log_max_age="$weeks"
-		log_age-unit="week"
+		log_age_unit="week"
 	elif (( months > 0 )); then
 		# roll back to 1st of current month, then subtract months
 		max_age="$(date -d "$NOW" '+%Y-%m-01') -$months months"
