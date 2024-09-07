@@ -179,7 +179,6 @@ prune_keep_daily() {
 	load_args "$@"
 	(( every > 0 )) || die "$FUNCNAME: bad every: ${every}"
 	(( count > 0 )) || die "$FUNCNAME: bad count: ${count}"
-	(( days > 0 )) || die "$FUNCNAME: bad hours: ${hours}"
 	local desc="$FUNCNAME $*"
 	local max_age log_max_age log_age_unit
 	_prune_parse_max_age
@@ -196,8 +195,8 @@ prune_keep_weekly() {
 	local count=0
 	local minutes=0 hours=0 days=0 weeks=0 months=0 years=0
 	load_args "$@"
+	(( every != 1 )) || die "$FUNCNAME: bad every: ${every}"
 	(( count > 0 )) || die "$FUNCNAME: bad count: ${count}"
-	(( weeks > 0 )) || die "$FUNCNAME: bad weeks: ${weeks}"
 	local desc="$FUNCNAME $*"
 	local max_age log_max_age log_age_unit
 	_prune_parse_max_age
@@ -214,7 +213,8 @@ prune_keep_monthly() {
 	local count=0
 	local minutes=0 hours=0 days=0 weeks=0 months=0 years=0
 	load_args "$@"
-	(( count > 0 )) || die "prune_keep_monthly: bad count: ${count}"
+	(( every != 1 )) || die "$FUNCNAME: bad every: ${every}"
+	(( count > 0 )) || die "$FUNCNAME: bad count: ${count}"
 	local desc="$FUNCNAME $*"
 	local max_age log_max_age log_age_unit
 	_prune_parse_max_age
@@ -231,8 +231,8 @@ prune_keep_yearly() {
 	local every=1 count=0
 	local minutes=0 hours=0 days=0 weeks=0 months=0 years=0
 	load_args "$@"
-	(( every > 0 )) || die "prune_keep_yearly: bad every: ${years}"
-	(( count > 0 )) || die "prune_keep_yearly: bad count: ${count}"
+	(( every > 0 )) || die "$FUNCNAME: bad every: ${years}"
+	(( count > 0 )) || die "$FUNCNAME: bad count: ${count}"
 	local desc="$FUNCNAME $*"
 	local max_age log_max_age log_age_unit
 	_prune_parse_max_age
