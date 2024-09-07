@@ -121,7 +121,8 @@ _prune_keep_within_timeframe() {
 		return
 	fi
 
-	local bucket="$($bucket_f "$snap")"
+	local bucket
+	bucket="$($bucket_f "$snap")"
 	if (( state[$bucket] >= count )); then
 		#dbg "rule: $desc: backup $snap is in excess of allowed $count backups in bucket $bucket (already ${state[$bucket]:-0}), skipping"
 		return
@@ -133,8 +134,9 @@ _prune_keep_within_timeframe() {
 }
 
 d_keep_minutely() {
-	local ts="$(epoch_adjusted "$1")"
-	local bucket="$(( ts - ts % (every * 60) ))"
+	local ts bucket
+	ts="$(epoch_adjusted "$1")"
+	bucket="$(( ts - ts % (every * 60) ))"
 	date -d "@$bucket" -Iminutes
 }
 prune_keep_minutely() {
@@ -151,8 +153,9 @@ prune_keep_minutely() {
 }
 
 d_keep_hourly() {
-	local ts="$(epoch_adjusted "$1")"
-	local bucket="$(( ts - ts % (every * 3600) ))"
+	local ts bucket
+	ts="$(epoch_adjusted "$1")"
+	bucket="$(( ts - ts % (every * 3600) ))"
 	date -d "@$bucket" -Ihours
 }
 prune_keep_hourly() {
@@ -169,8 +172,9 @@ prune_keep_hourly() {
 }
 
 d_keep_daily() {
-	local ts="$(epoch_adjusted "$1")"
-	local bucket="$(( ts - ts % (every * 3600 * 24) ))"
+	local ts bucket
+	ts="$(epoch_adjusted "$1")"
+	bucket="$(( ts - ts % (every * 3600 * 24) ))"
 	date -d "@$bucket" -Idate
 }
 prune_keep_daily() {
@@ -223,8 +227,9 @@ prune_keep_monthly() {
 }
 
 d_keep_yearly() {
-	local ts="$1"
-	local year="$(date -d "$ts" "+%Y")"
+	local ts year
+	ts="$1"
+	year="$(date -d "$ts" "+%Y")"
 	echo "$(( year - year % every ))"
 }
 prune_keep_yearly() {
@@ -261,7 +266,7 @@ prune_set_verdict() {
 
 prune_try_rule() {
 	local keep=0 delete=0
-	local rule=( $rule ) # split words
+	read -ra rule <<<"$rule"
 	#dbg "rule: $(printf "'%s' " "${rule[@]}")"
 
 	if ! [[ "${rule[0]}" == *=* ]]; then
