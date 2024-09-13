@@ -283,7 +283,7 @@ prune_try_rule() {
 	fi
 }
 
-prune_try_backup() {
+_prune_try_backup() {
 	local snap_age="$(( NOW_EPOCH - snap_epoch ))"
 	if (( snap_age < 0 )); then
 		die "bad backup timestamp, aborting: snap=$snap ($snap_epoch), now=$NOW ($NOW_EPOCH), age=$snap_age < 0"
@@ -375,6 +375,13 @@ prune_try_backups() {
 	local snap snap_epoch
 	for line in "${backups[@]}"; do
 		read snap_epoch snap <<< "$line"
-		prune_try_backup "$@"
+		_prune_try_backup "$@"
 	done
+}
+
+prune_try_backup() {
+	local has_retain_callback has_prune_callback
+	if type -t retain_callback &>/dev/null; then has_retain_callback=1; fi
+	if type -t prune_callback &>/dev/null; then has_prune_callback=1; fi
+	_prune_try_backup "$@"
 }
