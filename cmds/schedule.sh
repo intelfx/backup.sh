@@ -46,9 +46,7 @@ scheduled=1
 prune_callback() {
 	scheduled=0
 }
-snap="$NOW"
-snap_epoch="$NOW_EPOCH"
-prune_try_backup "${SCHEDULE_RULES[@]}"
+prune_try_backup "$NOW_EPOCH" "$NOW" "${SCHEDULE_RULES[@]}"
 
 if (( scheduled )); then
 	log "a new backup is accepted at $NOW"

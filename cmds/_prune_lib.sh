@@ -372,7 +372,7 @@ prune_try_backups() {
 	local has_retain_callback has_prune_callback
 	if type -t retain_callback &>/dev/null; then has_retain_callback=1; fi
 	if type -t prune_callback &>/dev/null; then has_prune_callback=1; fi
-	local snap snap_epoch
+	local snap_epoch snap
 	for line in "${backups[@]}"; do
 		read snap_epoch snap <<< "$line"
 		_prune_try_backup "$@"
@@ -380,6 +380,8 @@ prune_try_backups() {
 }
 
 prune_try_backup() {
+	local snap_epoch="$1" snap="$2"
+	shift 2
 	local has_retain_callback has_prune_callback
 	if type -t retain_callback &>/dev/null; then has_retain_callback=1; fi
 	if type -t prune_callback &>/dev/null; then has_prune_callback=1; fi
